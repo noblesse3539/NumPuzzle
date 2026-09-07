@@ -20,6 +20,12 @@ async function buildProduction() {
   await mkdir(PROD_ROOT, { recursive: true });
   await copyFile("index.html", PROD_ROOT);
   await copyFile("styles.css", PROD_ROOT);
+  await copyFile("ads-config.js", PROD_ROOT);
+  await copyFile("ads.js", PROD_ROOT);
+  await copyFile("privacy.html", PROD_ROOT);
+  await copyFile("ads.txt", PROD_ROOT);
+  await copyFile("robots.txt", PROD_ROOT);
+  await copyFile("sitemap.xml", PROD_ROOT);
   await copyFile("audio/fourcast-bgm-v2.wav", PROD_ROOT);
 
   const sourceApp = await readFile(path.join(ROOT, "app.js"), "utf8");
@@ -38,6 +44,8 @@ async function buildLab() {
   await copyFile("lab/bootstrap.js", LAB_ROOT, "game/bootstrap.js");
   await copyFile("app.js", LAB_ROOT, "game/app.js");
   await copyFile("styles.css", LAB_ROOT, "game/styles.css");
+  await copyFile("ads-config.js", LAB_ROOT, "game/ads-config.js");
+  await copyFile("ads.js", LAB_ROOT, "game/ads.js");
   await copyFile(
     "audio/fourcast-bgm-v2.wav",
     LAB_ROOT,

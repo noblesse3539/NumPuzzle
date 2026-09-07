@@ -6,9 +6,15 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const PROD_ROOT = path.join(ROOT, "dist", "prod");
 const LAB_ROOT = path.join(ROOT, "dist", "lab");
 const PROD_ALLOWED_FILES = [
+  "ads-config.js",
+  "ads.js",
+  "ads.txt",
   "app.js",
   "audio/fourcast-bgm-v2.wav",
   "index.html",
+  "privacy.html",
+  "robots.txt",
+  "sitemap.xml",
   "styles.css"
 ];
 const PROD_FORBIDDEN_TEXT = [
@@ -85,18 +91,68 @@ export async function verifyBuild() {
 
   const productionHtml = await readFile(path.join(PROD_ROOT, "index.html"), "utf8");
   const productionApp = await readFile(path.join(PROD_ROOT, "app.js"), "utf8");
+  const productionAdsConfig = await readFile(
+    path.join(PROD_ROOT, "ads-config.js"),
+    "utf8"
+  );
+  const productionAds = await readFile(path.join(PROD_ROOT, "ads.js"), "utf8");
+  const productionPrivacy = await readFile(
+    path.join(PROD_ROOT, "privacy.html"),
+    "utf8"
+  );
   assert(productionHtml.includes("./app.js"), "Production app entry is missing.");
   assert(productionHtml.includes("./styles.css"), "Production stylesheet is missing.");
+  assert(
+    productionHtml.includes("./ads-config.js") &&
+      productionHtml.includes("./ads.js"),
+    "Production ad manager entry is missing."
+  );
+  assert(
+    productionHtml.includes("./privacy.html"),
+    "Production privacy link is missing."
+  );
+  assert(
+    productionHtml.includes('data-ad-slot-key="home"') &&
+      productionHtml.includes('data-ad-slot-key="gameOver"'),
+    "Production ad slots are missing."
+  );
   assert(productionApp.includes("window.FOURCAST ="), "Public FOURCAST API is missing.");
   assert(productionApp.includes("getState: function"), "Public read API is missing.");
   assert(
     productionApp.includes("getStackRushStageProfile: function"),
     "Stack Rush profile API is missing."
   );
+  assert(
+    productionAdsConfig.includes("FOURCAST_AD_CONFIG") &&
+      productionAdsConfig.includes("client:") &&
+      productionAdsConfig.includes("slots:"),
+    "AdSense configuration is incomplete."
+  );
+  assert(
+    productionAds.includes("pagead2.googlesyndication.com"),
+    "AdSense loader is missing."
+  );
+  assert(
+    !productionPrivacy.includes("adsbygoogle") &&
+      !productionPrivacy.includes("pagead2.googlesyndication.com") &&
+      !productionPrivacy.includes("FOURCAST_AD_CONFIG"),
+    "Privacy page must not load advertising or consent scripts."
+  );
+  const productionAdsTxt = await readFile(path.join(PROD_ROOT, "ads.txt"), "utf8");
+  const productionRobots = await readFile(path.join(PROD_ROOT, "robots.txt"), "utf8");
+  const productionSitemap = await readFile(
+    path.join(PROD_ROOT, "sitemap.xml"),
+    "utf8"
+  );
+  assert(productionAdsTxt.trim().length > 0, "ads.txt is empty.");
+  assert(productionRobots.includes("User-agent:"), "robots.txt is missing.");
+  assert(productionSitemap.includes("<urlset"), "sitemap.xml is missing.");
 
   const requiredLabFiles = [
     "game/app.js",
     "game/bootstrap.js",
+    "game/ads-config.js",
+    "game/ads.js",
     "game/index.html",
     "game/styles.css",
     "game/audio/fourcast-bgm-v2.wav",

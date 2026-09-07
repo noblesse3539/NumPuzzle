@@ -54,6 +54,11 @@
       stackRushModeName: "스택 러시",
       stackRushModeTagline: "끝없이 내려오는 블록들을 제거하세요",
       bestScoreAria: "최고 점수",
+      siteIntro: "네 개의 라인에서 숫자를 맞추고, 다음 스테이지까지 살아남으세요.",
+      siteLinksAria: "사이트 정보",
+      privacyLink: "개인정보처리방침",
+      contactLink: "문의·크레딧",
+      adLabel: "광고",
       start: "시작",
       preparing: "준비 중…",
       score: "점수",
@@ -115,6 +120,11 @@
       stackRushModeName: "STACK RUSH",
       stackRushModeTagline: "REMOVE THE ENDLESSLY FALLING BLOCKS.",
       bestScoreAria: "Best score",
+      siteIntro: "Match the falling numbers across four lanes and survive each stage.",
+      siteLinksAria: "Site information",
+      privacyLink: "Privacy policy",
+      contactLink: "Contact & credits",
+      adLabel: "Advertisement",
       start: "START",
       preparing: "PREPARING…",
       score: "SCORE",
@@ -3284,10 +3294,32 @@
     }
   }
 
+  function setAdScreen(screenName) {
+    if (
+      window.FOURCAST_ADS &&
+      typeof window.FOURCAST_ADS.setScreen === "function"
+    ) {
+      window.FOURCAST_ADS.setScreen(
+        screenName === "start" ? "home" : screenName
+      );
+    }
+  }
+
+  function setAdsSuppressed(isSuppressed) {
+    if (
+      window.FOURCAST_ADS &&
+      typeof window.FOURCAST_ADS.setSuppressed === "function"
+    ) {
+      window.FOURCAST_ADS.setSuppressed(isSuppressed);
+    }
+  }
+
   function showScreen(screenName) {
     elements.startScreen.hidden = screenName !== "start";
     elements.gameScreen.hidden = screenName !== "game";
     elements.gameOverScreen.hidden = screenName !== "game-over";
+    setAdsSuppressed(false);
+    setAdScreen(screenName);
   }
 
   function updateBestScoreUi() {
@@ -3646,11 +3678,13 @@
       return;
     }
     elements.helpModal.hidden = false;
+    setAdsSuppressed(true);
     elements.helpCloseButton.focus();
   }
 
   function closeHelp() {
     elements.helpModal.hidden = true;
+    setAdsSuppressed(false);
     elements.helpButton.focus();
   }
 
@@ -3659,6 +3693,7 @@
       return;
     }
     elements.settingsModal.hidden = false;
+    setAdsSuppressed(true);
     updateBgmUi();
     elements.settingsCloseButton.focus();
   }
@@ -3851,6 +3886,7 @@
   function closeSettings() {
     closeLanguageMenu(false);
     elements.settingsModal.hidden = true;
+    setAdsSuppressed(false);
     elements.settingsButton.focus();
   }
 

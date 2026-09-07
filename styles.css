@@ -410,6 +410,70 @@ button:focus-visible {
   width: 100%;
 }
 
+.screen-ad {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  align-items: center;
+  width: min(100%, 360px);
+  min-width: 0;
+}
+
+.screen-ad-label {
+  margin-bottom: 6px;
+  color: var(--ink-muted);
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.screen-ad .adsbygoogle {
+  display: block;
+  width: 100%;
+  min-height: 60px;
+  overflow: hidden;
+  border: 1px solid var(--line-soft);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.66);
+}
+
+.start-screen > .screen-ad-home {
+  margin-bottom: 150px;
+}
+
+.site-intro {
+  max-width: 360px;
+  margin: 0;
+  color: var(--ink-muted);
+  font-size: clamp(0.66rem, 2.4vw, 0.8rem);
+  font-weight: 600;
+  line-height: 1.45;
+  text-align: center;
+}
+
+.site-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 7px 14px;
+  width: 100%;
+}
+
+.site-links a {
+  color: var(--ink-muted);
+  font-size: clamp(0.62rem, 2.2vw, 0.74rem);
+  font-weight: 700;
+  text-underline-offset: 3px;
+}
+
+.site-links a:hover {
+  color: var(--ink);
+}
+
 .primary-button,
 .secondary-button {
   min-height: 48px;
@@ -1290,8 +1354,11 @@ button:focus-visible {
 /* Game over */
 
 .game-over-screen {
-  display: grid;
-  place-items: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 150px;
   background:
     radial-gradient(circle at 50% 25%, rgba(255, 255, 255, 0.92), transparent 42%),
     var(--background);
@@ -1364,6 +1431,10 @@ button:focus-visible {
 .game-over-actions .secondary-button,
 .game-over-actions .restart-button {
   margin-top: 0;
+}
+
+.game-over-card .site-links {
+  margin-top: 16px;
 }
 
 /* Help modal */
@@ -1986,6 +2057,12 @@ button:focus-visible {
 
   .lane-button {
     min-height: 44px;
+  }
+}
+
+@media (max-height: 700px), (max-width: 359px) {
+  .screen-ad {
+    display: none !important;
   }
 }
 

@@ -91,3 +91,82 @@ Stack Rush 점수는 콤보 1에서 10점, 콤보 2~10에서 11점, 콤보 11~20
 - `scripts/build.mjs`: 프로덕션과 Lab 산출물 생성
 - `scripts/verify-build.mjs`: 프로덕션 오염 및 산출물 구조 검사
 - `scripts/serve.mjs`: 추가 패키지 없는 로컬 정적 서버
+
+## 웹 배포
+
+FOURCAST의 1차 배포 대상은 모바일 웹입니다. GitHub 저장소를 Cloudflare
+Pages의 Git 연동에 연결하고 다음 값을 사용합니다.
+
+```text
+Production branch: master
+Framework preset: None
+Root directory: 저장소 루트
+Build command: npm run build
+Build output directory: dist/prod
+Node version: 22
+```
+
+저장소 루트나 `dist/lab`을 공개하지 말고, Pages가 빌드한 `dist/prod`만
+서비스합니다. Cloudflare Pages의 Git 연동을 사용하면 `master`에 push할 때
+자동으로 새 배포가 생성됩니다. 직접 업로드로 시작하면 나중에 Git 연동으로
+전환할 수 없으므로, 지속적으로 업데이트할 사이트에는 Git 연동을 사용합니다.
+
+로컬에서 배포 전 확인합니다.
+
+```text
+node -v
+npm -v
+npm run build
+npm run verify:build
+npm run serve:prod
+```
+
+처음에는 Cloudflare가 제공하는 `pages.dev` 주소에서 휴대폰으로 확인한 뒤,
+문제가 없을 때 custom domain을 연결합니다. apex domain을 사용할 경우
+Cloudflare의 custom domain 설정에서 안내하는 nameserver를 적용하고,
+subdomain을 사용할 경우 안내된 CNAME을 등록합니다.
+
+## AdSense 준비
+
+웹 광고는 AdMob이 아니라 AdSense를 사용합니다. 현재 `ads-config.js`의
+`enabled` 값은 `false`이므로 광고 계정이 승인되기 전에는 광고 스크립트가
+로드되지 않습니다.
+
+AdSense 사이트 심사를 통과한 뒤 `ads-config.js`에 계정의 실제 값을 입력합니다.
+
+```js
+window.FOURCAST_AD_CONFIG = Object.freeze({
+  enabled: true,
+  client: "ca-pub-YOUR_PUBLISHER_ID",
+  slots: Object.freeze({
+    home: "YOUR_HOME_AD_SLOT_ID",
+    gameOver: "YOUR_GAME_OVER_AD_SLOT_ID"
+  })
+});
+```
+
+값을 입력하기 전까지는 예시 문자열을 실제 서비스에 사용하지 않습니다.
+광고는 홈과 게임오버 화면에서만 한 번씩 초기화되며, 플레이 중·도움말·설정
+화면에는 나타나지 않습니다. 광고와 게임 조작부가 가까워지거나 작은 화면에서
+레이아웃을 침범하면 광고를 숨기고 게임 화면을 우선합니다.
+
+AdSense 연결 전 창작자가 해야 할 일은 다음과 같습니다.
+
+1. custom domain과 공개 문의 방식을 결정합니다.
+2. BGM, 이미지, 폰트의 상업적 이용 권리를 확인합니다.
+3. AdSense 계정을 만들고 지급 정보와 세금 정보를 실제 수취인 기준으로
+   입력합니다.
+4. AdSense에서 사이트 소유권을 인증하고 사이트 심사를 요청합니다.
+5. `ads-config.js`에 승인된 publisher ID와 광고 단위 ID를 입력합니다.
+6. AdSense가 제공한 seller line을 `ads.txt`에 추가합니다.
+7. custom domain을 선택한 뒤 `sitemap.xml`과 `robots.txt`의 URL 정보를
+   최종 주소에 맞게 갱신합니다.
+
+`privacy.html`에는 게임의 로컬 저장 데이터, 호스팅 로그, 외부 폰트 CDN,
+AdSense 및 광고 파트너의 처리 가능성을 설명합니다. 이 페이지에는 광고
+스크립트나 동의창 스크립트를 넣지 않습니다. 유럽경제지역·영국·스위스
+이용자에게 개인화 광고를 제공할 때는 AdSense의 Privacy & messaging에서
+Google 인증 CMP를 설정합니다.
+
+초기 테스트에서는 광고가 비활성화되어도 정상입니다. AdSense 사이트 상태가
+`Ready`가 된 뒤에만 실사용 광고 ID를 입력하고 다시 배포합니다.
