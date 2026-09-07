@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>FOURCAST Stack Rush Lab</title>
+    <link rel="stylesheet" href="./lab.css" />
+  </head>
+  <body>
+    <main class="lab-shell">
+      <header class="lab-header">
+        <div>
+          <p class="eyebrow">DEVELOPMENT ONLY</p>
+          <h1>Stack Rush Lab</h1>
+          <p class="lab-summary">실제 게임 규칙 경로로 완벽 판정·점수, Stage 11 preview 맥동, 블록 비율 웨이브를 재현합니다.</p>
+        </div>
+        <span class="connection-status" id="connectionStatus">게임 연결 중</span>
+      </header>
+
+      <section class="lab-workspace">
+        <div class="device-column">
+          <div class="device-label">
+            <span>실제 모바일 게임</span>
+            <span>390 × 844</span>
+          </div>
+          <div class="device-frame">
+            <iframe
+              id="gameFrame"
+              title="FOURCAST 모바일 게임 프레임"
+              src="./game/index.html"
+            ></iframe>
+          </div>
+        </div>
+
+        <aside class="control-panel" aria-label="Stack Rush Lab 조작 패널">
+          <section class="panel-card">
+            <div class="card-heading">
+              <div>
+                <p class="card-kicker">CONTROL</p>
+                <h2>기본 조작</h2>
+              </div>
+            </div>
+            <label class="field-label" for="stageInput">Stack Rush 스테이지</label>
+            <div class="stage-control">
+              <input id="stageInput" type="number" min="1" max="99" step="1" value="11" inputmode="numeric" />
+              <button id="startStageButton" type="button">선택 스테이지 시작</button>
+            </div>
+            <div class="button-row">
+              <button class="secondary" id="resetButton" type="button">현재 시나리오 초기화</button>
+              <button class="secondary" id="pauseButton" type="button">일시정지</button>
+              <button class="secondary" id="resumeButton" type="button">재개</button>
+            </div>
+          </section>
+
+          <section class="panel-card scenario-card">
+            <div class="scenario-number">01</div>
+            <div class="scenario-copy">
+              <h2>Stage 10 → 11</h2>
+              <p>마지막 실제 적중으로 안전 체크 해제 전환을 확인합니다.</p>
+            </div>
+            <div class="button-row">
+              <button class="secondary" id="prepareSafetyButton" type="button">준비</button>
+              <button id="runSafetyButton" type="button">마지막 적중 실행</button>
+            </div>
+          </section>
+
+          <section class="panel-card scenario-card">
+            <div class="scenario-number">02</div>
+            <div class="scenario-copy">
+              <h2>완벽 판정·점수</h2>
+              <p>현재 선택지는 여러 개지만 preview까지 이어지는 경로가 하나일 때만 완벽과 50점 보너스를 받는지 확인합니다.</p>
+            </div>
+            <div class="button-row wrap">
+              <button class="secondary" id="preparePerfectButton" type="button">준비</button>
+              <button id="runPerfectSingleButton" type="button">유일 선택 실행</button>
+              <button class="secondary" id="runPerfectButton" type="button">여러 선택·유일 경로</button>
+              <button class="secondary" id="runPerfectInvalidButton" type="button">preview 배치 다중</button>
+            </div>
+          </section>
+
+          <section class="panel-card scenario-card">
+            <div class="scenario-number">03</div>
+            <div class="scenario-copy">
+              <h2>레드라인 자동 초기화</h2>
+              <p>실제 경계 판정은 실행하되 게임오버 대신 같은 Lab 시나리오를 다시 준비합니다.</p>
+            </div>
+            <div class="button-row">
+              <button class="secondary" id="prepareRedLineButton" type="button">준비</button>
+              <button class="danger" id="runRedLineButton" type="button">레드라인 도달</button>
+            </div>
+          </section>
+
+          <section class="panel-card scenario-card is-wide">
+            <div class="scenario-number">04</div>
+            <div class="scenario-copy">
+              <h2>Stage 11 preview 3회 맥동</h2>
+              <p>안전 체크 해제 이후 preview 토큰만 300ms 간격으로 세 번 맥동하고, 숫자를 바꿔도 맥동이 취소되지 않는지 확인합니다.</p>
+            </div>
+            <div class="button-row wrap">
+              <button class="secondary" id="prepareSafetyPulseButton" type="button">준비</button>
+              <button id="runSafetyPulseButton" type="button">맥동 시작</button>
+              <button class="secondary" id="changeSafetyPulseButton" type="button">Next 변경</button>
+            </div>
+          </section>
+
+          <section class="panel-card scenario-card is-wide">
+            <div class="scenario-number">05</div>
+            <div class="scenario-copy">
+              <h2>3% 웨이브 대열·패널티 리플로우</h2>
+              <p>라인 끝에 주차된 두 패널티를 신규 웨이브 아래로 옮기고, 블록 높이의 3% 간격과 하위 블록의 연쇄 재배치를 확인합니다.</p>
+            </div>
+            <div class="button-row">
+              <button class="secondary" id="prepareWaveSpacingButton" type="button">준비</button>
+              <button id="runWaveSpacingButton" type="button">웨이브 삽입·리플로우</button>
+            </div>
+          </section>
+
+          <section class="panel-card scenario-card is-wide">
+            <div class="scenario-number">06</div>
+            <div class="scenario-copy">
+              <h2>웨이브 진입 간격 고정</h2>
+              <p>새 웨이브 진입 전후 240ms를 프레임 단위로 측정해 타일 외곽의 0.28→1 확대, 간격 흔들림, 이동 속도 편차를 확인합니다.</p>
+            </div>
+            <div class="button-row">
+              <button class="secondary" id="prepareWaveEntryButton" type="button">준비</button>
+              <button id="runWaveEntryButton" type="button">240ms 진입 측정</button>
+            </div>
+          </section>
+
+          <section class="panel-card observation-card" aria-live="polite">
+            <div class="card-heading">
+              <div>
+                <p class="card-kicker">READ ONLY</p>
+                <h2>현재 상태</h2>
+              </div>
+              <span class="state-pill" id="phaseValue">연결 중</span>
+            </div>
+            <dl class="state-grid">
+              <div><dt>시나리오</dt><dd id="scenarioValue">-</dd></div>
+              <div><dt>스테이지</dt><dd id="stageValue">-</dd></div>
+              <div><dt>진행</dt><dd id="progressValue">-</dd></div>
+              <div><dt>안전 체크</dt><dd id="safetyValue">-</dd></div>
+              <div><dt>Next</dt><dd id="nextValue">-</dd></div>
+              <div><dt>콤보</dt><dd id="comboValue">-</dd></div>
+              <div><dt>점수</dt><dd id="scoreValue">-</dd></div>
+              <div><dt>완벽 기회</dt><dd id="perfectValue">-</dd></div>
+              <div><dt>완벽 경로</dt><dd id="perfectPathValue">-</dd></div>
+              <div><dt>완벽 성공 횟수</dt><dd id="perfectSuccessValue">-</dd></div>
+              <div><dt>현재 피드백</dt><dd id="feedbackValue">-</dd></div>
+              <div><dt>Stage 11 맥동</dt><dd id="safetyPulseValue">-</dd></div>
+              <div><dt>중심 간격</dt><dd id="waveCenterGapValue">-</dd></div>
+              <div><dt>외곽 간격</dt><dd id="waveEdgeGapValue">-</dd></div>
+              <div><dt>간격 비율</dt><dd id="waveRatioValue">-</dd></div>
+              <div><dt>간격 흔들림</dt><dd id="waveJitterValue">-</dd></div>
+              <div><dt>최대 겹침</dt><dd id="overlapValue">-</dd></div>
+              <div><dt>리플로우 이동</dt><dd id="reflowValue">-</dd></div>
+              <div><dt>이동 속도 편차</dt><dd id="speedSpreadValue">-</dd></div>
+              <div><dt>진입 외곽 크기</dt><dd id="spawnFootprintValue">-</dd></div>
+              <div><dt>낙하 시간</dt><dd id="fallDurationValue">-</dd></div>
+              <div><dt>웨이브 공급</dt><dd id="wavePlanValue">-</dd></div>
+              <div><dt>패널티 재합류</dt><dd id="parkedValue">-</dd></div>
+              <div><dt>자동 초기화</dt><dd id="resetCountValue">0</dd></div>
+              <div><dt>게임오버 화면</dt><dd id="gameOverValue">숨김</dd></div>
+              <div><dt>마지막 동작</dt><dd id="lastActionValue">-</dd></div>
+            </dl>
+            <p class="status-message" id="statusMessage">게임 프레임의 준비를 기다리고 있습니다.</p>
+          </section>
+        </aside>
+      </section>
+    </main>
+
+    <script src="./lab.js" defer></script>
+  </body>
+</html>

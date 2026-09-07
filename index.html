@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+    <meta name="theme-color" content="#fff8ee" />
+    <meta
+      name="description"
+      content="FOURCAST - 네 개의 라인에서 숫자를 맞추며 최대한 오래 생존하세요."
+    />
+    <title>FOURCAST</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell" id="appShell">
+      <main class="game-app" data-i18n-aria="appAriaLabel" aria-label="FOURCAST 숫자블록 생존 게임">
+        <section class="screen start-screen" id="startScreen">
+          <div class="start-art" aria-hidden="true">
+            <span class="art-shape art-shape-one"></span>
+            <span class="art-shape art-shape-two"></span>
+            <span class="art-shape art-shape-three"></span>
+            <span class="art-shape art-shape-four"></span>
+            <span class="art-grid"></span>
+          </div>
+
+          <div class="start-actions">
+            <button class="icon-button help-button" id="helpButton" type="button" data-i18n-aria="helpButtonAria">
+              ?
+            </button>
+            <button class="icon-button settings-button" id="settingsButton" type="button" data-i18n-aria="settingsButtonAria">
+              <span aria-hidden="true">⚙</span>
+            </button>
+          </div>
+
+          <div class="start-content">
+            <h1>FOURCAST</h1>
+            <div class="rush-intro" aria-labelledby="rushTitle">
+                <span class="rush-intro-icon" aria-hidden="true">
+                  <span class="digit-token mode-icon-shot" data-value="4">4</span>
+                  <span class="digit-token mode-icon-stack-tile mode-icon-stack-tile-one" data-value="3">3</span>
+                  <span class="digit-token mode-icon-stack-tile mode-icon-stack-tile-two" data-value="2">2</span>
+                </span>
+                <span class="rush-intro-copy">
+                  <strong class="rush-intro-title" id="rushTitle" data-i18n="stackRushModeName">스택 러시</strong>
+                  <span class="rush-intro-tagline" data-i18n="stackRushModeTagline">끝없이 내려오는 블록들을 제거하세요</span>
+                  <span class="rush-intro-best"><span data-i18n="best">최고 점수</span> <strong id="stackRushBestScore">0</strong></span>
+                </span>
+                <span class="rush-intro-mark" aria-hidden="true">↗</span>
+            </div>
+          </div>
+
+          <div class="start-footer">
+            <button class="primary-button start-button" id="startButton" type="button">
+              <span class="button-label" id="startButtonLabel" data-i18n="start">START</span>
+            </button>
+          </div>
+        </section>
+
+        <section class="screen game-screen" id="gameScreen" hidden>
+          <header class="game-header">
+            <div class="score-area">
+              <span class="hud-label" data-i18n="score">SCORE</span>
+              <div class="score-row">
+                <strong class="score-value" id="scoreValue">0</strong>
+              </div>
+            </div>
+
+            <div class="next-display" data-i18n-aria="nextDisplayAria" aria-label="현재 Next와 다음 Next">
+              <span class="hud-label" data-i18n="next">NEXT</span>
+              <div class="next-values">
+                <div class="digit-token current-next" id="currentNext" data-i18n-aria="currentNextAria" aria-label="현재 Next">1</div>
+                <div class="digit-token preview-next" id="previewNext" data-i18n-aria="previewNextAria" aria-label="다음 Next">2</div>
+              </div>
+            </div>
+
+            <button class="icon-button music-toggle" id="musicButton" type="button" data-i18n-aria="musicButtonAria">
+              <span class="music-icon" aria-hidden="true">♪</span>
+            </button>
+          </header>
+
+          <div class="game-status-row">
+            <div class="stage-hud" data-i18n-aria="stageProgressAria" aria-label="스테이지 목표 진행">
+              <div class="stage-hud-heading">
+                <span class="hud-label" data-i18n="stage">STAGE</span>
+                <strong class="stage-value" id="stageValue">1</strong>
+                <span class="stage-progress-text" id="stageProgressText">0/8</span>
+                <span class="stage-time" id="stageTimeValue">30초</span>
+              </div>
+              <div
+                class="stage-progress"
+                id="stageProgress"
+                role="progressbar"
+                data-i18n-aria="stageProgressAria"
+                aria-label="스테이지 목표 진행"
+                aria-valuemin="0"
+                aria-valuemax="8"
+                aria-valuenow="0"
+              >
+                <span class="stage-progress-fill" id="stageProgressFill"></span>
+              </div>
+            </div>
+
+            <div class="combo-hud" data-i18n-aria="currentComboAria" aria-label="현재 콤보">
+              <span class="hud-label" data-i18n="combo">COMBO</span>
+              <strong class="combo-value" id="comboValue">x0</strong>
+              <span class="hud-feedback" id="feedbackText" hidden aria-live="polite"></span>
+            </div>
+          </div>
+
+          <section class="game-board" id="gameBoard" data-i18n-aria="gameBoardAria" aria-label="숫자 블록 라인">
+            <div class="lane" data-lane="0">
+              <div class="lane-track">
+                <div class="lane-blocks" aria-hidden="true"></div>
+                <div class="red-line" aria-hidden="true"></div>
+              </div>
+              <button class="lane-button" type="button" data-lane="0" data-i18n-aria="lane1Aria" aria-label="1번 라인 선택">
+                <span class="lane-button-label" aria-hidden="true">1</span>
+              </button>
+            </div>
+
+            <div class="lane" data-lane="1">
+              <div class="lane-track">
+                <div class="lane-blocks" aria-hidden="true"></div>
+                <div class="red-line" aria-hidden="true"></div>
+              </div>
+              <button class="lane-button" type="button" data-lane="1" data-i18n-aria="lane2Aria" aria-label="2번 라인 선택">
+                <span class="lane-button-label" aria-hidden="true">2</span>
+              </button>
+            </div>
+
+            <div class="lane" data-lane="2">
+              <div class="lane-track">
+                <div class="lane-blocks" aria-hidden="true"></div>
+                <div class="red-line" aria-hidden="true"></div>
+              </div>
+              <button class="lane-button" type="button" data-lane="2" data-i18n-aria="lane3Aria" aria-label="3번 라인 선택">
+                <span class="lane-button-label" aria-hidden="true">3</span>
+              </button>
+            </div>
+
+            <div class="lane" data-lane="3">
+              <div class="lane-track">
+                <div class="lane-blocks" aria-hidden="true"></div>
+                <div class="red-line" aria-hidden="true"></div>
+              </div>
+              <button class="lane-button" type="button" data-lane="3" data-i18n-aria="lane4Aria" aria-label="4번 라인 선택">
+                <span class="lane-button-label" aria-hidden="true">4</span>
+              </button>
+            </div>
+          </section>
+
+          <div class="run-banner" id="runBanner" hidden role="status" aria-live="polite">
+            <span class="run-banner-kicker" id="runBannerKicker">STAGE 1</span>
+            <strong class="run-banner-title" id="runBannerTitle">STAGE CLEAR</strong>
+            <span class="run-banner-detail" id="runBannerDetail">NEXT STAGE 2</span>
+          </div>
+
+          <div class="countdown-layer" id="countdownLayer" hidden aria-live="assertive">
+            <span class="countdown-caption" id="countdownCaption">GET READY</span>
+            <strong class="countdown-number" id="countdownNumber">3</strong>
+          </div>
+        </section>
+
+        <section class="screen game-over-screen" id="gameOverScreen" hidden>
+          <div class="game-over-card">
+            <h2 data-i18n="gameOver">GAME OVER</h2>
+
+            <dl class="result-grid">
+              <div>
+                <dt data-i18n="score">SCORE</dt>
+                <dd id="finalScore">0</dd>
+              </div>
+              <div>
+                <dt data-i18n="best">BEST</dt>
+                <dd id="finalBestScore">0</dd>
+              </div>
+              <div>
+                <dt data-i18n="reachedStage">REACHED STAGE</dt>
+                <dd id="finalStage">1</dd>
+              </div>
+              <div>
+                <dt data-i18n="bestCombo">BEST COMBO</dt>
+                <dd id="finalBestCombo">0</dd>
+              </div>
+            </dl>
+
+            <div class="game-over-actions">
+              <button class="secondary-button main-menu-button" id="mainMenuButton" type="button" data-i18n="mainMenu">
+                MAIN MENU
+              </button>
+              <button class="primary-button restart-button" id="restartButton" type="button">
+                <span class="button-label" id="restartButtonLabel" data-i18n="restart">RESTART</span>
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <div class="orientation-blocker" id="orientationBlocker" hidden>
+          <div class="orientation-card">
+            <span class="orientation-icon" aria-hidden="true">↻</span>
+            <h2 data-i18n="orientationTitle">세로 화면으로 플레이하세요</h2>
+            <p data-i18n="orientationBody">화면을 세로로 돌리면 게임이 이어집니다.</p>
+          </div>
+        </div>
+
+        <div class="help-modal" id="helpModal" hidden role="dialog" aria-modal="true" aria-labelledby="helpTitle">
+          <div class="help-card">
+            <button class="icon-button modal-close-button" id="helpCloseButton" type="button" data-i18n-aria="closeHelpAria" aria-label="도움말 닫기">
+              ×
+            </button>
+            <p class="game-kicker" id="helpTitle" data-i18n="helpTitle">HOW TO PLAY</p>
+            <div class="help-copy">
+              <p data-i18n="helpBody">빨간 선에 닿기 전에 내려오는 숫자 블록을 제거하세요.</p>
+            </div>
+            <button class="secondary-button" id="helpDoneButton" type="button" data-i18n="confirm">확인</button>
+          </div>
+        </div>
+
+        <div class="help-modal settings-modal" id="settingsModal" hidden role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+          <div class="help-card settings-card">
+            <button class="icon-button modal-close-button" id="settingsCloseButton" type="button" data-i18n-aria="closeSettingsAria" aria-label="설정 닫기">
+              ×
+            </button>
+            <p class="game-kicker" id="settingsTitle" data-i18n="settingsTitle">SETTINGS</p>
+
+            <div class="settings-content">
+              <div class="setting-row">
+                <label class="setting-label" for="languageSelect" data-i18n="language">LANGUAGE</label>
+                <div class="language-control" id="languageControl">
+                  <button
+                    class="language-select"
+                    id="languageSelect"
+                    type="button"
+                    data-i18n-aria="languageSelectAria"
+                    aria-label="언어 선택"
+                    aria-haspopup="listbox"
+                    aria-expanded="false"
+                    aria-controls="languageMenu"
+                  >
+                    <span class="language-select-value" id="languageSelectValue">한국어</span>
+                    <span class="language-select-chevron" aria-hidden="true"></span>
+                  </button>
+                  <div
+                    class="language-menu"
+                    id="languageMenu"
+                    role="listbox"
+                    data-i18n-aria="languageSelectAria"
+                    aria-label="언어 선택"
+                    hidden
+                  >
+                    <div class="language-option" id="languageOptionKo" role="option" tabindex="-1" data-language="ko" aria-selected="true">
+                      <span>한국어</span>
+                      <span class="language-option-check" aria-hidden="true">✓</span>
+                    </div>
+                    <div class="language-option" id="languageOptionEn" role="option" tabindex="-1" data-language="en" aria-selected="false">
+                      <span>English</span>
+                      <span class="language-option-check" aria-hidden="true">✓</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="setting-row">
+                <div class="setting-label-group">
+                  <span class="setting-label" data-i18n="bgm">BGM</span>
+                  <span class="setting-state" id="bgmStateText">ON</span>
+                </div>
+                <label class="switch-control">
+                  <input class="switch-input" id="bgmToggle" type="checkbox" role="switch" data-i18n-aria="bgmToggleAria" aria-label="BGM 켜기/끄기" />
+                  <span class="switch-visual" aria-hidden="true"></span>
+                </label>
+              </div>
+
+              <div class="setting-row setting-volume-row">
+                <div class="setting-label-group">
+                  <label class="setting-label" for="bgmVolume" data-i18n="bgmVolume">BGM 음량</label>
+                  <output class="setting-state" id="bgmVolumeValue" for="bgmVolume">60%</output>
+                </div>
+                <div class="volume-control">
+                  <input class="volume-range" id="bgmVolume" type="range" min="0" max="100" step="1" value="60" data-i18n-aria="bgmVolumeAria" aria-label="BGM 음량" />
+                </div>
+              </div>
+            </div>
+
+            <button class="secondary-button" id="settingsDoneButton" type="button" data-i18n="confirm">확인</button>
+          </div>
+        </div>
+
+      </main>
+    </div>
+
+    <script src="./app.js" defer></script>
+  </body>
+</html>

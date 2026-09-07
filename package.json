@@ -1,0 +1,10 @@
+{
+  "name": "fourcast-static-game",
+  "private": true,
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "serve:prod": "node scripts/serve.mjs prod 4173",
+    "serve:lab": "node scripts/serve.mjs lab 4174",
+    "verify:build": "node scripts/verify-build.mjs"
+  }
+}
