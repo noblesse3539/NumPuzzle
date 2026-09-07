@@ -1130,14 +1130,6 @@ button:focus-visible {
   background: var(--red);
 }
 
-.lane-button-label {
-  color: var(--ink-muted);
-  font-variant-numeric: tabular-nums;
-  font-weight: 800;
-  line-height: 1;
-  transition: color 160ms ease, transform 160ms ease;
-}
-
 .lane.is-danger .lane-track {
   border-color: rgba(230, 91, 91, 0.68);
   box-shadow:
@@ -1165,11 +1157,6 @@ button:focus-visible {
   opacity: 0.78;
 }
 
-.lane-button.is-target-candidate .lane-button-label {
-  color: #478d77;
-  transform: translateY(1px);
-}
-
 .lane-button.is-danger:not(:disabled) {
   border-color: rgba(230, 91, 91, 0.68);
 }
@@ -1177,10 +1164,6 @@ button:focus-visible {
 .lane-button.is-danger::after {
   box-shadow: 0 0 8px rgba(230, 91, 91, 0.32);
   opacity: 0.82;
-}
-
-.lane-button.is-danger .lane-button-label {
-  color: #bd6262;
 }
 
 .lane-button.is-target-candidate.is-danger {
