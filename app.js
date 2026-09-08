@@ -4,8 +4,12 @@
   var LANE_COUNT = 4;
   var DIGITS = [1, 2, 3, 4];
   var MODE_STACK_RUSH = "stack-rush";
-  var MAX_PENDING_INPUTS = 4;
+  var MAX_PENDING_INPUTS = 1;
   var SCORE_PER_BLOCK = 10;
+  var BURST_CHARGE_TARGET = 16;
+  var BURST_DURATION = 6;
+  var BURST_SLOW_FACTOR = 0.4;
+  var BURST_BONUS = 100;
   var RED_LINE_Y = 0.9;
   var FEEDBACK_DURATION_MS = 350;
   var PROJECTILE_DURATION_MS = 190;
@@ -20,6 +24,7 @@
   var STACK_RUSH_INITIAL_WAVE_COUNT = 2;
   var STACK_RUSH_STAGE_END_MARGIN_SECONDS = 0.5;
   var STACK_RUSH_WAVE_GAP_RATIO = 0.03;
+  var STACK_RUSH_BLOCK_HEIGHT = 0.1;
   var STACK_RUSH_WAVE_GAP_EPSILON = 0.0001;
   var STACK_RUSH_TARGET_SUPPLY_RATIO = 0.72;
   var STACK_RUSH_STAGE_ONE_FALL_DURATION_SECONDS = 30;
@@ -40,6 +45,11 @@
   var BGM_SOURCE_URL = "./audio/fourcast-bgm-v2.wav";
   var LANGUAGE_STORAGE_KEY = "fourcast-language";
   var BGM_ENABLED_STORAGE_KEY = "fourcast-bgm-enabled";
+  var LAST_RUN_STORAGE_KEY = "fourcast-last-run-v1";
+  var LEARNING_STORAGE_KEY = "fourcast-learning-step";
+  var COMBO_SOUND_STORAGE_KEY = "fourcast-combo-sound-enabled";
+  var SFX_STORAGE_KEY = "fourcast-sfx-enabled";
+  var HAPTIC_STORAGE_KEY = "fourcast-haptic-enabled";
   var BGM_VOLUME_STORAGE_KEY = "fourcast-bgm-volume";
   var BEST_SCORE_STORAGE_KEY = "fourcast-stack-rush-best-score";
   var LEGACY_STACK_RUSH_SCORES_STORAGE_KEY = "fourcast-best-scores";
@@ -96,13 +106,16 @@
       orientationTitle: "세로 화면으로 플레이하세요",
       orientationBody: "화면을 세로로 돌리면 게임이 이어집니다.",
       helpTitle: "게임 방법",
+      resetTips: "첫 플레이 안내 다시 보기",
       closeHelpAria: "도움말 닫기",
-      helpBody: "빨간 선에 닿기 전에 내려오는 숫자 블록을 제거하세요.",
+      helpBody: "빨간 선에 닿기 전에 내려오는 숫자 블록을 제거하세요. 정답 16개로 버스트를 충전하세요. 준비되면 버스트 버튼을 눌러 선택 가능한 6초 안에 4연속 정답으로 +100점을 받으세요. 막혔을 때 발동하면 NEXT를 다시 연결합니다. 다음 블록을 기다릴 때는 제한 시간이 멈춥니다. 오답은 충전 4칸을 잃거나 버스트를 종료합니다. 키보드 1~4 또는 A/S/D/F는 왼쪽부터 라인을 선택합니다. B는 버스트, P 또는 Esc는 일시정지입니다.",
       confirm: "확인",
       settingsTitle: "설정",
       closeSettingsAria: "설정 닫기",
       language: "언어",
       languageSelectAria: "언어 선택",
+      comboSound: "콤보 화음", comboSoundAria: "콤보 화음 켜기/끄기",
+      sfx: "효과음", haptic: "진동", sfxAria: "효과음 켜기/끄기", hapticAria: "진동 켜기/끄기",
       bgm: "BGM",
       bgmOn: "켜짐",
       bgmOff: "꺼짐",
@@ -111,6 +124,7 @@
       bgmVolumeAria: "BGM 음량",
       getReady: "준비",
       startCaption: "시작",
+      pauseAria: "일시정지", resume: "계속하기",
       paused: "일시정지"
     },
     en: {
@@ -162,13 +176,16 @@
       orientationTitle: "Play in portrait mode",
       orientationBody: "Rotate your screen to continue.",
       helpTitle: "HOW TO PLAY",
+      resetTips: "Show beginner tips again",
       closeHelpAria: "Close help",
-      helpBody: "Remove the falling number blocks before they reach the red line.",
+      helpBody: "Remove blocks before the red line. Charge Burst with 16 correct hits. Tap the ready Burst button, then make 4 consecutive hits within 6 playable seconds for +100 points. Activating while blocked reconnects NEXT. The timer pauses while waiting for the next block. A miss costs 4 charge or ends an active Burst. Keys 1–4 or A/S/D/F select lanes from left to right. B activates Burst. P or Esc pauses.",
       confirm: "OK",
       settingsTitle: "SETTINGS",
       closeSettingsAria: "Close settings",
       language: "LANGUAGE",
       languageSelectAria: "Select language",
+      comboSound: "COMBO HARMONY", comboSoundAria: "Toggle combo harmony",
+      sfx: "SOUND EFFECTS", haptic: "HAPTICS", sfxAria: "Toggle sound effects", hapticAria: "Toggle haptics",
       bgm: "BGM",
       bgmOn: "ON",
       bgmOff: "OFF",
@@ -177,6 +194,7 @@
       bgmVolumeAria: "BGM volume",
       getReady: "GET READY",
       startCaption: "START",
+      pauseAria: "Pause", resume: "Resume",
       paused: "PAUSED"
     }
   };
@@ -212,6 +230,22 @@
     bgmVolume: document.getElementById("bgmVolume"),
     bgmVolumeValue: document.getElementById("bgmVolumeValue"),
     musicButton: document.getElementById("musicButton"),
+    burstButton: document.getElementById("burstButton"),
+    burstTitle: document.getElementById("burstTitle"),
+    burstHint: document.getElementById("burstHint"),
+    gameBoard: document.getElementById("gameBoard"),
+    immersionNotice: document.getElementById("immersionNotice"),
+    recordChase: document.getElementById("recordChase"),
+    flowTier: document.getElementById("flowTier"),
+    sfxToggle: document.getElementById("sfxToggle"),
+    hapticToggle: document.getElementById("hapticToggle"),
+    comboSoundToggle: document.getElementById("comboSoundToggle"),
+    resetTipsButton: document.getElementById("resetTipsButton"),
+    personalGoal: document.getElementById("personalGoal"),
+    lastRunNote: document.getElementById("lastRunNote"),
+    pauseButton: document.getElementById("pauseButton"),
+    resumeButton: document.getElementById("resumeButton"),
+    burstSteps: Array.prototype.slice.call(document.querySelectorAll(".burst-step")),
     scoreValue: document.getElementById("scoreValue"),
     stageValue: document.getElementById("stageValue"),
     stageProgress: document.getElementById("stageProgress"),
@@ -252,12 +286,18 @@
   var state = {
     phase: "start",
     language: readLanguagePreference(),
+    learningStep: readLearningStep(),
+    lastRunSummary: readLastRunSummary(),
+    comboSoundEnabled: readBooleanPreference(COMBO_SOUND_STORAGE_KEY, true),
+    sfxEnabled: readBooleanPreference(SFX_STORAGE_KEY, true),
+    hapticEnabled: readBooleanPreference(HAPTIC_STORAGE_KEY, false),
     bgmEnabled: readBooleanPreference(BGM_ENABLED_STORAGE_KEY, true),
     bgmVolume: readVolumePreference(),
     bgmPlayback: "idle",
     bgmFadeFrame: null,
     bgmWasPlayingBeforePause: false,
     bgmStartedThisRun: false,
+    immersion: createImmersionState(),
     score: 0,
     bestScore: readBestScore(),
     elapsed: 0,
@@ -314,10 +354,13 @@
     next: null,
     resolve: null,
     pendingInputs: [],
+    nextRevision: 0,
     buttonsLocked: false,
     countdownTimer: null,
     countdownFinishTimer: null,
     pauseReason: null,
+    pausedBreakRemaining: null,
+    restoreGameFocusOnResume: false,
     lastFrameTime: 0,
     lastRenderedCurrent: null,
     lastRenderedPreview: null,
@@ -354,6 +397,110 @@
     preparationToken: 0,
     preparationActive: false
   };
+
+  // Sound effects use an independent, bounded graph so the BGM toggle stays independent.
+  var effectsEngine = { context: null, voices: [] };
+
+  function primeEffectsAudio() {
+    if (!state.sfxEnabled) return;
+    try {
+      var Constructor = getAudioContextConstructor();
+      if (!Constructor) return;
+      if (!effectsEngine.context) effectsEngine.context = new Constructor();
+      effectsEngine.context.resume().catch(function () {});
+    } catch (error) { /* Sound is optional; gameplay never waits for it. */ }
+  }
+
+  function stopEffectsAudio() {
+    effectsEngine.voices.slice().forEach(function (voice) {
+      try { voice.oscillator.stop(); } catch (error) {}
+      voice.oscillator.disconnect();
+      voice.gain.disconnect();
+    });
+    effectsEngine.voices = [];
+    if (effectsEngine.context && effectsEngine.context.state === "running") {
+      effectsEngine.context.suspend().catch(function () {});
+    }
+    if (state.hapticEnabled && typeof navigator.vibrate === "function") {
+      try { navigator.vibrate(0); } catch (error) {}
+    }
+  }
+
+  function playEffectTone(frequency, duration, delay, volume) {
+    var context = effectsEngine.context;
+    if (!state.sfxEnabled || !context || context.state !== "running" ||
+        effectsEngine.voices.length >= 12 || document.hidden || state.phase !== "running") return;
+    try {
+      var oscillator = context.createOscillator();
+      var gain = context.createGain();
+      var start = context.currentTime + (delay || 0);
+      oscillator.type = "sine";
+      oscillator.frequency.value = frequency;
+      gain.gain.setValueAtTime(0, start);
+      gain.gain.linearRampToValueAtTime(volume || 0.045, start + 0.008);
+      gain.gain.exponentialRampToValueAtTime(0.001, start + duration);
+      oscillator.connect(gain);
+      gain.connect(context.destination);
+      var voice = { oscillator: oscillator, gain: gain };
+      effectsEngine.voices.push(voice);
+      oscillator.onended = function () {
+        oscillator.disconnect(); gain.disconnect();
+        var index = effectsEngine.voices.indexOf(voice);
+        if (index >= 0) effectsEngine.voices.splice(index, 1);
+      };
+      oscillator.start(start);
+      oscillator.stop(start + duration + 0.01);
+    } catch (error) { /* Unsupported audio must not interrupt a hit. */ }
+  }
+
+  function playTouchFeedback(kind, value) {
+    if (kind === "hit") {
+      var root = [523.25, 587.33, 659.25, 783.99][(value || 1) - 1];
+      playEffectTone(root, 0.10);
+      if (state.comboSoundEnabled) {
+        var tier = getComboSoundTier();
+        if (tier >= 1) playEffectTone(root / 2, 0.12, 0, 0.018);
+        if (tier >= 2) playEffectTone(root * 1.5, 0.10, 0.018, 0.012);
+        if (tier >= 3) playEffectTone(root * 2, 0.08, 0.035, 0.008);
+      }
+    }
+    if (kind === "miss") playEffectTone(164.81, 0.12, 0, 0.025);
+    if (kind === "burst") {
+      playEffectTone(523.25, 0.14);
+      playEffectTone(783.99, 0.18, 0.08);
+    }
+    if (kind === "complete") [523.25, 659.25, 783.99].forEach(function (frequency, index) {
+      playEffectTone(frequency, 0.20, index * 0.055, 0.035);
+    });
+    if (state.hapticEnabled && !document.hidden && typeof navigator.vibrate === "function") {
+      try { navigator.vibrate(kind === "complete" ? [12, 35, 18] : kind === "miss" ? 18 : 8); } catch (error) {}
+    }
+  }
+
+  function getComboSoundTier() {
+    return Math.min(3, Math.floor(state.combo / 10));
+  }
+
+  function updateEffectsUi() {
+    elements.comboSoundToggle.checked = state.comboSoundEnabled;
+    elements.sfxToggle.checked = state.sfxEnabled;
+    elements.hapticToggle.checked = state.hapticEnabled;
+  }
+
+  function setEffectPreference(kind, enabled) {
+    var preferences = { sfx: [SFX_STORAGE_KEY, "sfxEnabled"], haptic: [HAPTIC_STORAGE_KEY, "hapticEnabled"], comboSound: [COMBO_SOUND_STORAGE_KEY, "comboSoundEnabled"] };
+    var preference = preferences[kind];
+    if (!preference) return;
+    var key = preference[0];
+    state[preference[1]] = Boolean(enabled);
+    try { window.localStorage.setItem(key, String(Boolean(enabled))); } catch (error) {}
+    if (kind === "sfx" && !enabled) stopEffectsAudio();
+    else if (kind === "sfx") primeEffectsAudio();
+    if (kind === "haptic" && !enabled && typeof navigator.vibrate === "function") {
+      try { navigator.vibrate(0); } catch (error) {}
+    }
+    updateEffectsUi();
+  }
 
   function createLanes() {
     return Array.from({ length: LANE_COUNT }, function () {
@@ -554,10 +701,70 @@
 
   function writeBestScore() {
     try {
+      var storedBest = Number(window.localStorage.getItem(BEST_SCORE_STORAGE_KEY));
+      if (Number.isFinite(storedBest) && storedBest > state.bestScore) state.bestScore = storedBest;
       window.localStorage.setItem(BEST_SCORE_STORAGE_KEY, String(state.bestScore));
     } catch (error) {
       // Private browsing modes may deny localStorage. The current run still works.
     }
+  }
+
+  function readLastRunSummary() {
+    try {
+      var summary = JSON.parse(window.localStorage.getItem(LAST_RUN_STORAGE_KEY));
+      if (!summary || summary.version !== 1) return null;
+      var valid = ["score", "stage", "combo", "bursts"].every(function (key) {
+        return Number.isSafeInteger(summary[key]) && summary[key] >= 0 && summary[key] <= 1000000000;
+      });
+      return valid ? { version: 1, score: summary.score, stage: summary.stage,
+        combo: summary.combo, bursts: summary.bursts } : null;
+    } catch (error) { return null; }
+  }
+
+  function checkpointRunScore(force) {
+    /* FOURCAST_LAB_START */
+    if (typeof labSession !== "undefined" && labSession && labSession.active) return;
+    /* FOURCAST_LAB_END */
+    var flow = state.immersion;
+    if (state.score > state.bestScore) {
+      state.bestScore = state.score;
+      flow.recordDirty = true;
+    }
+    if (flow.recordDirty && (force || state.elapsed - flow.checkpointAt >= 1)) {
+      writeBestScore();
+      flow.recordDirty = false;
+      flow.checkpointAt = state.elapsed;
+    }
+  }
+
+  function saveLastRunSummary() {
+    state.lastRunSummary = { version: 1, score: state.score, stage: state.highestStage,
+      combo: state.bestCombo, bursts: state.immersion.completed };
+    try { window.localStorage.setItem(LAST_RUN_STORAGE_KEY, JSON.stringify(state.lastRunSummary)); } catch (error) {}
+  }
+
+  function readLearningStep() {
+    try {
+      var step = Number(window.localStorage.getItem(LEARNING_STORAGE_KEY));
+      return Number.isInteger(step) && step >= 0 && step <= 3 ? step : 0;
+    } catch (error) { return 0; }
+  }
+
+  function saveLearningStep(step) {
+    /* FOURCAST_LAB_START */
+    if (typeof labSession !== "undefined" && labSession && labSession.active) return;
+    /* FOURCAST_LAB_END */
+    state.learningStep = step;
+    try { window.localStorage.setItem(LEARNING_STORAGE_KEY, String(step)); } catch (error) {}
+  }
+
+  function getLearningHint() {
+    if (state.learningStep === 0) return immersionText("큰 NEXT와 같은 맨 아래 블록을 골라요", "Match the large NEXT to a bottom block");
+    if (state.learningStep === 1) return immersionText("작은 NEXT로 다음 선택도 읽어보세요", "Read the small NEXT for your next move");
+    if (state.learningStep === 2) return state.immersion.charge === BURST_CHARGE_TARGET ?
+      immersionText("준비됐어요. 아래 BURST를 눌러보세요", "Ready. Tap BURST below") :
+      immersionText("정답 16개를 모으면 BURST를 쓸 수 있어요", "Build 16 correct hits to unlock BURST");
+    return "";
   }
 
   function readLanguagePreference() {
@@ -1512,7 +1719,7 @@
     }
 
     return Promise.resolve(resumePromise).then(function () {
-      if (state.phase !== "running" || !state.bgmEnabled) {
+      if ((state.phase !== "running" && state.phase !== PHASE_STAGE_BREAK) || !state.bgmEnabled) {
         return;
       }
 
@@ -1588,7 +1795,7 @@
 
     if (!bgmEngine.buffer && !bgmEngine.webAudioFailure) {
       prepareWebAudioBuffer().then(function () {
-        if (state.phase === "running" && state.bgmEnabled) {
+        if ((state.phase === "running" || state.phase === PHASE_STAGE_BREAK) && state.bgmEnabled) {
           bgmEngine.backend = "web-audio";
           startBgmPlayback(withFade);
         }
@@ -1919,6 +2126,8 @@
   }
 
   function clearStageBoard() {
+    state.immersion.fastHits = [];
+    clearImmersionEffects();
     clearRenderedStageObjects();
     state.waves = [];
     state.futureWaves = [];
@@ -1940,6 +2149,7 @@
   }
 
   function initialiseStageBoard() {
+    state.nextRevision += 1;
     state.waves = [];
     state.futureWaves = [];
     state.lanes = createLanes();
@@ -1993,11 +2203,15 @@
   }
 
   function initialiseRun() {
+    elements.resumeButton.hidden = true;
+    checkpointRunScore(true);
     clearCountdownTimers();
     stopBgm(true);
+    stopEffectsAudio();
 
     state.phase = "countdown";
     state.score = 0;
+    resetImmersion();
     state.elapsed = 0;
     state.stageElapsed = 0;
     state.level = 1;
@@ -2031,6 +2245,7 @@
     state.pendingInputs = [];
     state.buttonsLocked = false;
     state.pauseReason = null;
+    state.pausedBreakRemaining = null;
     state.bgmWasPlayingBeforePause = false;
     state.bgmStartedThisRun = false;
     state.countdownResumeFade = false;
@@ -2245,21 +2460,11 @@
   }
 
   function getBlockHeightPixels() {
-    if (state.layout.blockHeight > 0) {
-      return state.layout.blockHeight;
-    }
-    if (state.layout.blockWidth > 0) {
-      return state.layout.blockWidth;
-    }
-    var layerWidth = state.layout.blockLayerWidth || state.layout.trackWidth;
-    if (layerWidth > 0) {
-      return clamp(layerWidth * 0.8, 24, 78);
-    }
-    return 52;
+    return getBlockLayerHeight() * STACK_RUSH_BLOCK_HEIGHT;
   }
 
   function getBlockHeightNormalized() {
-    return Math.max(0.001, getBlockHeightPixels() / getBlockLayerHeight());
+    return STACK_RUSH_BLOCK_HEIGHT;
   }
 
   function getStackRushWaveGapPixels() {
@@ -2402,29 +2607,6 @@
       });
   }
 
-  function preserveBlockGeometry(previousLayerHeight, nextLayerHeight) {
-    if (
-      previousLayerHeight <= 0 ||
-      nextLayerHeight <= 0 ||
-      Math.abs(previousLayerHeight - nextLayerHeight) < 0.01
-    ) {
-      return;
-    }
-
-    state.lanes.forEach(function (lane) {
-      lane.blocks.forEach(function (block) {
-        if (
-          (block.status === "active" || block.status === "removing") &&
-          Number.isFinite(block.normalizedY)
-        ) {
-          block.normalizedY =
-            (block.normalizedY * previousLayerHeight) / nextLayerHeight;
-        }
-      });
-      enforceLayoutSpacing(lane);
-    });
-  }
-
   function scheduleInitialWaveSpacingCalibration() {
     state.waveSpacingCalibrationPending = true;
     window.requestAnimationFrame(calibrateInitialWaveSpacing);
@@ -2467,14 +2649,6 @@
       });
     });
 
-    var profile = buildStackRushStageProfile(state.stage);
-    state.stageProfile = profile;
-    state.difficulty = profile;
-    state.motionDifficulty = profile;
-    state.waveTimer = profile.waveIntervalSeconds;
-    if (state.stageRemoved === 0) {
-      state.stageTarget = profile.target;
-    }
     state.waveSpacingCalibrationPending = false;
     render(performance.now());
   }
@@ -2537,6 +2711,30 @@
     });
   }
 
+  function getPlayablePreviewCandidates(frontierSlots, requireEveryChoice) {
+    var choices = getActualCurrentChoices(frontierSlots);
+    if (choices.length === 0) return [];
+    var outcomes = choices.map(function (choice) {
+      return simulateFrontierAfterChoice(frontierSlots, choice);
+    });
+    var seen = new Set();
+    var candidates = [];
+    outcomes.forEach(function (slots) {
+      slots.forEach(function (slot) {
+        if (slot.sourceType !== "visible-window" || seen.has(slot.sourceBlockId)) return;
+        seen.add(slot.sourceBlockId);
+        candidates.push(createFrontierCandidate(slot));
+      });
+    });
+    return candidates.filter(function (candidate) {
+      return !requireEveryChoice || outcomes.every(function (slots) {
+        return slots.some(function (slot) {
+          return slot.sourceType === "visible-window" && slot.value === candidate.value;
+        });
+      });
+    });
+  }
+
   function generateNextPreview(lanes) {
     var frontierSlots = getLogicalFrontierSlots(lanes, state.futureWaves);
     var matchingSlots = getMatchingFrontierSlots(frontierSlots);
@@ -2568,6 +2766,23 @@
       }
     } else {
       candidates = frontierSlots.map(createFrontierCandidate);
+    }
+
+    // Every generated preview must have at least one visible continuation when
+    // one exists. Early stages and Burst prefer a continuation for every choice.
+    // Harder stages keep the small-NEXT decision: some correct lanes may close it.
+    var playable = getPlayablePreviewCandidates(frontierSlots, false);
+    if (state.difficulty.safetyCheck || state.immersion.remaining > 0) {
+      var safe = getPlayablePreviewCandidates(frontierSlots, true);
+      if (safe.length > 0) playable = safe;
+    }
+    if (playable.length > 0) {
+      var preferred = candidates.filter(function (candidate) {
+        return candidate.sourceType === "visible-window" && playable.some(function (option) {
+          return option.sourceBlockId === candidate.sourceBlockId;
+        });
+      });
+      candidates = preferred.length > 0 ? preferred : playable;
     }
 
     var selectedCandidate = chooseWithStarvationGuard(candidates, lanes);
@@ -2603,6 +2818,273 @@
     });
   }
 
+  function createImmersionState() {
+    return { charge: 0, remaining: 0, chain: 0, completed: 0, clutches: 0, rescues: 0, recoveryRemaining: 0, fastHits: [], lightningCount: 0,
+      previousBest: 0, newBest: false, notice: "", noticeUntil: 0, noticeQueue: [], noticeLastShown: {}, lightningEffectAt: -Infinity, clutchUntil: 0, clearedCount: 0, checkpointAt: -1, recordDirty: false };
+  }
+
+  function clearImmersionEffects() {
+    document.querySelectorAll(".hit-spark, .hit-points, .lightning-trace").forEach(function (node) { node.remove(); });
+  }
+
+  function resetImmersion() {
+    state.immersion = createImmersionState();
+    state.immersion.previousBest = state.bestScore;
+    clearImmersionEffects();
+  }
+
+  function immersionText(ko, en) { return state.language === "ko" ? ko : en; }
+
+  function announceImmersion(kind) {
+    var flow = state.immersion;
+    var priority = { lightning: 1, ended: 2, ready: 3, burst: 4, rescue: 4, clutch: 5, best: 5, complete: 6 };
+    var durations = { lightning: 0.7, ready: 1.1, burst: 1, rescue: 1.6, complete: 1.1, ended: 1, clutch: 1.1, best: 1.8 };
+    if (kind === "lightning" && flow.noticeLastShown.lightning !== undefined &&
+        state.elapsed - flow.noticeLastShown.lightning < 8) return;
+    var active = state.elapsed < flow.noticeUntil;
+    if (active && flow.notice === kind) return;
+    if (active && (priority[flow.notice] || 0) >= (priority[kind] || 0)) {
+      if (kind === "lightning") return;
+      if (!flow.noticeQueue.some(function (entry) { return entry.kind === kind; })) {
+        flow.noticeQueue.push({ kind: kind, priority: priority[kind] || 0, expires: state.elapsed + 4 });
+        flow.noticeQueue.sort(function (a, b) { return b.priority - a.priority; });
+        flow.noticeQueue = flow.noticeQueue.slice(0, 3);
+      }
+      return;
+    }
+    flow.notice = kind;
+    flow.noticeLastShown[kind] = state.elapsed;
+    flow.noticeUntil = state.elapsed + (durations[kind] || 1.1);
+  }
+
+  function hasCurrentTarget() {
+    return Boolean(state.next && state.lanes.some(function (lane, index) {
+      var block = getBottomBlock(index);
+      return block && block.value === state.next.current;
+    }));
+  }
+
+  function isBurstWaitingForTarget() {
+    return state.immersion.remaining > 0 && !state.resolve && state.next && !hasCurrentTarget();
+  }
+
+  function easeEmptyBoardSupply() {
+    if (state.resolve || !state.next || hasCurrentTarget() ||
+        state.stageSpawnedWaveCount >= state.difficulty.spawnWaveCount) return;
+    // Advance only a scheduled wave, and only when reflow cannot crowd the line.
+    var pitch = getStackRushWavePitchNormalized();
+    var safe = state.lanes.every(function (lane, index) {
+      var blocks = getActiveBlocks(index);
+      return blocks.length <= 2 && blocks.every(function (block) {
+        return block.normalizedY + pitch < getGameOverY() - pitch * 2;
+      });
+    });
+    if (safe) state.waveTimer = Math.min(state.waveTimer, 0.45);
+  }
+
+  function reconnectBurstTarget() {
+    if (hasCurrentTarget()) return false;
+    var targets = state.lanes.map(function (lane, index) { return getBottomBlock(index); })
+      .filter(Boolean).sort(function (a, b) { return b.normalizedY - a.normalizedY; });
+    if (targets.length === 0) return false;
+    var target = targets[0];
+    breakStackRushNextInsightChain();
+    state.nextRevision += 1;
+    state.next.current = target.value;
+    state.next.currentMeta = createBlockDescriptor(target, target.laneIndex);
+    var preview = generateNextPreview();
+    state.next.preview = preview.value;
+    state.next.previewSource = preview.source;
+    state.next.previewMeta = cloneNextSourceMeta(preview.sourceMeta);
+    state.immersion.rescues += 1;
+    return true;
+  }
+
+  function activateBurst() {
+    var flow = state.immersion;
+    if (state.phase !== "running" || state.resolve || state.pendingInputs.length ||
+        flow.remaining > 0 || flow.charge < BURST_CHARGE_TARGET) return false;
+    flow.charge = 0;
+    flow.chain = 0;
+    flow.remaining = BURST_DURATION;
+    flow.recoveryRemaining = 0;
+    var reconnected = reconnectBurstTarget();
+    primeEffectsAudio();
+    playTouchFeedback("burst");
+    announceImmersion(reconnected ? "rescue" : "burst");
+    render(performance.now());
+    return true;
+  }
+
+  function finishBurst(success) {
+    state.immersion.remaining = 0;
+    if (success) {
+      state.immersion.completed += 1;
+      state.immersion.recoveryRemaining = 1.2;
+      state.score += BURST_BONUS;
+      playTouchFeedback("complete");
+    }
+    announceImmersion(success ? "complete" : "ended");
+  }
+
+  function showHitReward(resolution, points) {
+    if (!resolution) return;
+    var track = laneElements[resolution.laneIndex].track;
+    var label = document.createElement("span");
+    label.className = "hit-points";
+    label.textContent = "+" + points;
+    label.style.top = clamp(resolution.targetYAtImpact * 100, 8, 85) + "%";
+    label.setAttribute("aria-hidden", "true");
+    track.appendChild(label);
+    window.setTimeout(function () { label.remove(); }, 620);
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    for (var i = 0; i < 4; i += 1) {
+      var spark = document.createElement("i");
+      spark.className = "hit-spark";
+      spark.style.top = label.style.top;
+      spark.style.setProperty("--dx", (i % 2 ? 24 : -24) + "px");
+      spark.style.setProperty("--dy", (i < 2 ? -28 : 20) + "px");
+      spark.setAttribute("aria-hidden", "true");
+      track.appendChild(spark);
+      window.setTimeout(function (node) { node.remove(); }, 450, spark);
+    }
+  }
+
+  function recordLightningHit(resolution) {
+    if (!resolution) return;
+    var flow = state.immersion;
+    var hits = flow.fastHits;
+    if (hits.length && state.elapsed - hits[hits.length - 1].time > 0.8) hits.length = 0;
+    var board = elements.gameBoard;
+    var boardRect = board.getBoundingClientRect();
+    var track = laneElements[resolution.laneIndex].track.getBoundingClientRect();
+    if (!boardRect.width || !boardRect.height) return;
+    hits.push({ time: state.elapsed,
+      x: (track.left + track.width / 2 - boardRect.left) / boardRect.width * 100,
+      y: (track.top + track.height * clamp(resolution.targetYAtImpact, 0, 1) - boardRect.top) / boardRect.height * 100 });
+    if (hits.length < 4) return;
+    flow.lightningCount += 1;
+    var showEffect = state.elapsed - flow.lightningEffectAt >= 3;
+    if (showEffect) {
+      flow.lightningEffectAt = state.elapsed;
+      announceImmersion("lightning");
+    }
+    if (showEffect && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      var old = board.querySelector(".lightning-trace");
+      if (old) old.remove();
+      var svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      svg.setAttribute("class", "lightning-trace");
+      svg.setAttribute("viewBox", "0 0 100 100");
+      svg.setAttribute("preserveAspectRatio", "none");
+      svg.setAttribute("aria-hidden", "true");
+      var line = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
+      line.setAttribute("points", hits.map(function (hit) { return hit.x + "," + hit.y; }).join(" "));
+      line.setAttribute("vector-effect", "non-scaling-stroke");
+      svg.appendChild(line);
+      board.appendChild(svg);
+      window.setTimeout(function () { svg.remove(); }, 550);
+    }
+    hits.length = 0;
+  }
+
+  function registerImmersionHit(resolution, points) {
+    var flow = state.immersion;
+    var completed = false;
+    flow.clearedCount += 1;
+    recordLightningHit(resolution);
+    if (flow.remaining > 0) {
+      flow.chain += 1;
+      if (flow.chain === 4) { finishBurst(true); completed = true; }
+    } else {
+      var previousCharge = flow.charge;
+      flow.charge = Math.min(BURST_CHARGE_TARGET, flow.charge + 1);
+      if (previousCharge < BURST_CHARGE_TARGET && flow.charge === BURST_CHARGE_TARGET)
+        announceImmersion("ready");
+    }
+    // Celebrate only when the threatening block was removed AND the whole board is safe.
+    if (resolution && resolution.clutchCandidate && !state.lanes.some(function (lane) {
+      return lane.blocks.some(function (block) {
+        return block.status === "active" && !block.parked &&
+          getGameOverY() - block.normalizedY < getBlockHeightNormalized() * 0.35;
+      });
+    })) {
+      flow.clutches += 1;
+      flow.clutchUntil = state.elapsed + 0.7;
+      announceImmersion("clutch");
+    }
+    if (!flow.newBest && flow.previousBest > 0 && state.score > flow.previousBest) {
+      flow.newBest = true;
+      announceImmersion("best");
+    }
+    if (completed && state.learningStep < 3) saveLearningStep(3);
+    else if (flow.clearedCount >= 8 && state.learningStep < 2) saveLearningStep(2);
+    else if (flow.clearedCount >= 4 && state.learningStep < 1) saveLearningStep(1);
+    checkpointRunScore(false);
+    if (!completed) playTouchFeedback("hit", resolution && resolution.value);
+    showHitReward(resolution, points + (completed ? BURST_BONUS : 0));
+  }
+
+  function setUiText(element, text) {
+    if (element.textContent !== text) element.textContent = text;
+  }
+
+  function renderImmersion() {
+    var flow = state.immersion;
+    if (state.elapsed >= flow.noticeUntil && flow.noticeQueue.length) {
+      var nextNotice = flow.noticeQueue.shift();
+      if (nextNotice.expires >= state.elapsed &&
+          (nextNotice.kind !== "ready" || flow.charge === BURST_CHARGE_TARGET) &&
+          (["burst", "rescue"].indexOf(nextNotice.kind) === -1 || flow.remaining > 0)) announceImmersion(nextNotice.kind);
+    }
+    var active = flow.remaining > 0;
+    var ready = flow.charge === BURST_CHARGE_TARGET;
+    var tier = getComboSoundTier();
+    var tierLabel = elements.flowTier;
+    setUiText(tierLabel, tier ? "FLOW " + ["", "I", "II", "III"][tier] : "");
+    tierLabel.dataset.tier = String(tier);
+    var button = elements.burstButton;
+    button.disabled = state.phase !== "running" || !ready || active || Boolean(state.resolve) || state.pendingInputs.length > 0;
+    button.classList.toggle("is-ready", ready && !active);
+    button.classList.toggle("is-active", active);
+    button.style.setProperty("--charge", (active ? flow.remaining / BURST_DURATION : flow.charge / BURST_CHARGE_TARGET) * 100 + "%");
+    var title = active ? "BURST · " + flow.chain + " / 4" : ready ? "BURST READY" : "BURST · " + flow.charge + " / " + BURST_CHARGE_TARGET;
+    var hint = active ? (isBurstWaitingForTarget() ? immersionText("일치하는 블록 없음 · ", "No matching block · ") : immersionText("정답을 이어가세요 · ", "Keep matching · ")) + flow.remaining.toFixed(1) + "s" :
+      ready ? (!hasCurrentTarget() && getVisibleBlockCount() > 0
+        ? immersionText("눌러서 막힌 NEXT 연결", "Tap to reconnect NEXT")
+        : immersionText("눌러서 발동 · 4연속 정답", "Tap to activate · 4 correct hits")) : immersionText("정답을 모아 위기를 뒤집으세요", "Build charge. Turn the tide.");
+    setUiText(elements.burstTitle, title);
+    setUiText(elements.burstHint, hint);
+    var label = title + ". " + hint;
+    if (button.getAttribute("aria-label") !== label) button.setAttribute("aria-label", label);
+    elements.gameBoard.classList.toggle("is-burst", active);
+    elements.gameBoard.classList.toggle("is-clutch-release", state.elapsed < flow.clutchUntil);
+    elements.gameBoard.classList.toggle("is-burst-release", flow.recoveryRemaining > 0);
+    elements.burstSteps.forEach(function (step, index) {
+      step.classList.toggle("is-done", (active || flow.recoveryRemaining > 0) && index < flow.chain);
+    });
+    var notices = {
+      lightning: immersionText("번개 연쇄!", "LIGHTNING CHAIN!"),
+      ready: immersionText("버스트 준비 완료", "BURST READY"),
+      burst: immersionText("시간은 느리게, 네 번은 정확하게", "Slow time. Make four hits."),
+      rescue: immersionText("버스트 · 막힌 NEXT 연결!", "Burst · NEXT reconnected!"),
+      complete: "4 CHAIN! +" + BURST_BONUS,
+      ended: immersionText("버스트 종료 · 다시 모아보세요", "Burst ended · Build again"),
+      clutch: immersionText("살았다!", "CLUTCH!"),
+      best: immersionText("최고기록 돌파!", "NEW BEST!")
+    };
+    var notice = elements.immersionNotice;
+    var text = state.elapsed < flow.noticeUntil ? notices[flow.notice] || "" : "";
+    if (!text && state.phase === "running" && !state.resolve && state.next && !hasCurrentTarget()) {
+      text = immersionText("현재 NEXT와 맞는 맨 아래 블록이 없어요", "No bottom block matches the current NEXT");
+    }
+    if (!text && state.phase === "running") text = getLearningHint();
+    if (notice.textContent !== text) notice.textContent = text;
+    var record = elements.recordChase;
+    var remaining = flow.previousBest - state.score + 1;
+    setUiText(record, flow.newBest ? immersionText("♛ 새로운 최고기록", "♛ NEW BEST") :
+      flow.previousBest > 0 && remaining <= 100 ? immersionText("최고기록까지 ", "To new best: ") + remaining : "");
+  }
+
   function getScoreForCombo(combo) {
     if (combo <= 1) {
       return SCORE_PER_BLOCK;
@@ -2620,7 +3102,9 @@
     var perfect =
       Boolean(resolution && resolution.perfectStep === "second") &&
       registerPerfectSecondStep(resolution);
-    state.score += getScoreForCombo(state.combo) + (perfect ? 50 : 0);
+    var points = getScoreForCombo(state.combo) + (perfect ? 50 : 0);
+    state.score += points;
+    registerImmersionHit(resolution, points);
     showHudFeedback(
       perfect ? "perfect" : state.combo % 5 === 0 ? "milestone" : "hit"
     );
@@ -2636,6 +3120,10 @@
   }
 
   function breakCombo() {
+    playTouchFeedback("miss");
+    state.immersion.fastHits = [];
+    if (state.immersion.remaining > 0) finishBurst(false);
+    else state.immersion.charge = Math.max(0, state.immersion.charge - 4);
     state.combo = 0;
     showHudFeedback("miss");
   }
@@ -2703,6 +3191,7 @@
       return;
     }
 
+    state.nextRevision += 1;
     state.next.current = state.next.preview;
     state.next.currentMeta = cloneNextSourceMeta(state.next.previewMeta);
     var nextPreview = generateNextPreview();
@@ -2776,6 +3265,7 @@
       target,
       firedValue
     );
+    state.nextRevision += 1;
     state.next.current = state.next.preview;
     state.next.currentMeta = cloneNextSourceMeta(state.next.previewMeta);
     var nextPreview = generateNextPreview(projectedLanes);
@@ -2844,6 +3334,9 @@
       resolution.outcome = "correct";
       resolution.targetYAtImpact = target.normalizedY;
       resolution.removeBlockIds = [target.id];
+      resolution.clutchCandidate = !target.parked &&
+        getGameOverY() - target.normalizedY > 0 &&
+        getGameOverY() - target.normalizedY < getBlockHeightNormalized() * 0.35;
       target.status = "removing";
       target.redLineExempt = false;
       registerSuccessfulRemoval(resolution.laneIndex);
@@ -2969,10 +3462,20 @@
 
   function updateGame(deltaSeconds) {
     state.elapsed += deltaSeconds;
-    state.stageElapsed += deltaSeconds;
+    var slowSeconds = isBurstWaitingForTarget() ? deltaSeconds : Math.min(deltaSeconds, state.immersion.remaining);
+    var recoverySeconds = slowSeconds === 0 ? Math.min(deltaSeconds, state.immersion.recoveryRemaining) : 0;
+    var boardDelta = deltaSeconds - slowSeconds * (1 - BURST_SLOW_FACTOR) - recoverySeconds * 0.35;
+    state.immersion.recoveryRemaining = Math.max(0, state.immersion.recoveryRemaining - deltaSeconds);
+    // A generated Next may refer to a future wave. Forced supply waits are not
+    // player thinking time; keep the slow board moving until a legal hit exists.
+    if (!isBurstWaitingForTarget()) {
+      state.immersion.remaining = Math.max(0, state.immersion.remaining - deltaSeconds);
+    }
+    if (slowSeconds > 0 && state.immersion.remaining === 0) finishBurst(false);
+    state.stageElapsed += boardDelta;
     var motionDifficulty = getMotionDifficulty();
 
-    updateBlocks(deltaSeconds, motionDifficulty);
+    updateBlocks(boardDelta, motionDifficulty);
     if (state.phase !== "running") {
       return;
     }
@@ -2983,11 +3486,14 @@
     }
 
     updateStageProgress();
+    motionDifficulty = getMotionDifficulty();
+
+    easeEmptyBoardSupply();
 
     var canSpawnWave =
       state.stageSpawnedWaveCount < state.difficulty.spawnWaveCount;
     if (canSpawnWave) {
-      state.waveTimer -= deltaSeconds;
+      state.waveTimer -= boardDelta;
       var safetyCounter = 0;
       while (state.waveTimer <= 0 && safetyCounter < 4) {
         if (state.stageSpawnedWaveCount >= state.difficulty.spawnWaveCount) {
@@ -3080,7 +3586,10 @@
       return;
     }
 
-    startStackRushShot(state.pendingInputs.shift());
+    var input = state.pendingInputs.shift();
+    if (input && input.revision === state.nextRevision && state.next &&
+        input.value === state.next.current) startStackRushShot(input.laneIndex);
+    renderButtonState();
   }
 
   function showRushButtonPress(laneIndex) {
@@ -3094,19 +3603,22 @@
   }
 
   function handleLaneClick(laneIndex) {
-    if (state.phase !== "running" || !state.next) {
-      return;
-    }
+    if (state.phase !== "running" || !state.next ||
+        !Number.isInteger(laneIndex) || laneIndex < 0 || laneIndex >= LANE_COUNT ||
+        state.pendingInputs.length >= MAX_PENDING_INPUTS) return;
 
+    primeEffectsAudio();
     showRushButtonPress(laneIndex);
-    if (state.resolve || state.pendingInputs.length > 0) {
-      if (state.pendingInputs.length < MAX_PENDING_INPUTS) {
-        state.pendingInputs.push(laneIndex);
-      }
-      processNextPendingInput();
+    if (state.resolve) {
+      // Bind one buffered tap to the NEXT already on screen. A rapid tap burst
+      // must never become a queue of shots against numbers not yet displayed.
+      state.pendingInputs.push({ laneIndex: laneIndex,
+        revision: state.nextRevision, value: state.next.current });
+      renderButtonState();
       return;
     }
     startStackRushShot(laneIndex);
+    renderButtonState();
   }
 
   function endRun(reason) {
@@ -3123,10 +3635,15 @@
     clearCountdownTimers();
     clearProjectile(state.resolve);
     stopBgm(true);
+    stopEffectsAudio();
     state.resolve = null;
     state.pendingInputs = [];
     state.buttonsLocked = false;
+    checkpointRunScore(true);
+    saveLastRunSummary();
     state.phase = "game-over";
+    state.immersion.remaining = 0;
+    clearImmersionEffects();
     clearStageBanner();
     clearHudFeedback();
 
@@ -3171,6 +3688,7 @@
   }
 
   function setPreparationVisual() {
+    elements.resumeButton.hidden = true;
     elements.countdownLayer.hidden = false;
     elements.countdownLayer.classList.add("is-preparing");
     elements.countdownCaption.textContent = translate("preparing");
@@ -3197,6 +3715,8 @@
       return;
     }
 
+    state.restoreGameFocusOnResume = document.activeElement === elements.resumeButton;
+    elements.resumeButton.hidden = true;
     var wasAutoPaused = state.phase === "auto-paused";
     var shouldFadeOnResume = wasAutoPaused && state.bgmWasPlayingBeforePause;
     var shouldStartBgm =
@@ -3238,9 +3758,23 @@
 
     clearCountdownTimers();
     state.phase = "running";
+    if (state.stageBreak && state.pausedBreakRemaining !== null) {
+      state.stageBreak.until = performance.now() + state.pausedBreakRemaining;
+      state.stageBreak.startedAt = performance.now() - (STAGE_BREAK_DURATION_MS - state.pausedBreakRemaining);
+      state.phase = PHASE_STAGE_BREAK;
+    }
+    state.pausedBreakRemaining = null;
+    state.pauseReason = null;
     elements.countdownLayer.hidden = true;
+    elements.resumeButton.hidden = true;
     state.lastFrameTime = performance.now();
     renderButtonState();
+    renderPauseUi();
+    if (state.restoreGameFocusOnResume) {
+      if (state.phase === "running") laneElements[0].button.focus({ preventScroll: true });
+      else elements.pauseButton.focus({ preventScroll: true });
+    }
+    state.restoreGameFocusOnResume = false;
     if (state.countdownStartBgm) {
       startBgmPlayback(state.countdownResumeFade);
     }
@@ -3249,27 +3783,47 @@
   }
 
   function pauseForExternal(reason) {
-    if (state.phase !== "running" && state.phase !== "countdown") {
-      return;
+    checkpointRunScore(true);
+    if (bgmEngine.preparationActive ||
+        (state.phase !== "running" && state.phase !== "countdown" && state.phase !== PHASE_STAGE_BREAK)) return;
+    if (state.phase === PHASE_STAGE_BREAK && state.stageBreak) {
+      state.pausedBreakRemaining = Math.max(0, state.stageBreak.until - performance.now());
     }
-
     state.phase = "auto-paused";
     state.pauseReason = reason;
+    // Buffered taps belong to the old interaction context; never replay them on return.
+    state.pendingInputs = [];
     clearCountdownTimers();
     pauseBgmForExternal();
+    stopEffectsAudio();
     elements.countdownLayer.hidden = false;
     setCountdownVisual("Ⅱ", translate("paused"));
+    elements.resumeButton.hidden = false;
     renderButtonState();
+    renderPauseUi();
+    if (reason === "manual") elements.resumeButton.focus();
+  }
+
+  function resumeManually() {
+    if (state.phase !== "auto-paused" || document.hidden || isLandscapeViewport()) return;
+    primeEffectsAudio();
+    beginCountdown();
+  }
+
+  function toggleManualPause() {
+    if (state.phase === "auto-paused") resumeManually();
+    else pauseForExternal("manual");
+  }
+
+  function renderPauseUi() {
+    var button = elements.pauseButton;
+    button.disabled = bgmEngine.preparationActive ||
+      (state.phase !== "running" && state.phase !== PHASE_STAGE_BREAK && state.phase !== "countdown");
   }
 
   function tryResumeAfterExternalPause() {
-    if (
-      state.phase === "auto-paused" &&
-      !document.hidden &&
-      !isLandscapeViewport()
-    ) {
-      beginCountdown();
-    }
+    if (state.phase === "auto-paused" && state.pauseReason !== "manual" &&
+        !document.hidden && !isLandscapeViewport()) beginCountdown();
   }
 
   function isLandscapeViewport() {
@@ -3282,7 +3836,7 @@
     elements.orientationBlocker.hidden = !landscape;
 
     if (landscape) {
-      if (state.phase === "running" || state.phase === "countdown") {
+      if (state.phase === "running" || state.phase === "countdown" || state.phase === PHASE_STAGE_BREAK) {
         pauseForExternal("orientation");
       }
     } else if (
@@ -3326,6 +3880,12 @@
     if (elements.stackRushBestScore) {
       elements.stackRushBestScore.textContent = String(state.bestScore);
     }
+    var goal = elements.personalGoal;
+    goal.textContent = state.bestScore > 0 ? immersionText("다음 목표 · ", "Next goal · ") + (state.bestScore + 1) + immersionText("점", " points") :
+      immersionText("첫 목표 · 버스트 한 번 완성하기", "First goal · Complete one Burst");
+    var last = elements.lastRunNote;
+    last.textContent = state.lastRunSummary ? immersionText("지난 판 · 최고 콤보 ", "Last run · Best combo ") + state.lastRunSummary.combo +
+      immersionText(" / 버스트 ", " / Bursts ") + state.lastRunSummary.bursts : "";
   }
 
   function renderToken(element, value, isPreview) {
@@ -3589,7 +4149,7 @@
   }
 
   function renderButtonState() {
-    var locked = state.phase !== "running";
+    var locked = state.phase !== "running" || state.pendingInputs.length > 0;
     var blockHeight =
       state.phase === "running" ? getBlockHeightNormalized() : 0;
     laneElements.forEach(function (laneElement, laneIndex) {
@@ -3597,6 +4157,9 @@
         state.phase === "running" &&
         isLaneNearRedLine(laneIndex, blockHeight);
       laneElement.button.disabled = locked;
+      laneElement.button.classList.toggle("is-queued", state.pendingInputs.some(function (input) {
+        return input.laneIndex === laneIndex;
+      }));
       laneElement.button.classList.toggle("is-locked", locked);
       laneElement.button.classList.toggle(
         "is-target-candidate",
@@ -3624,45 +4187,28 @@
     renderHudFeedback(now);
     renderNextInsight(now);
     renderStageBanner(now);
+    renderImmersion();
+    renderPauseUi();
   }
 
   function measureLayout() {
-    if (!laneElements[0]) {
-      return;
-    }
+    document.documentElement.style.setProperty("--viewport-height", String(window.innerHeight) + "px");
+    if (!laneElements[0]) return;
     var trackRect = laneElements[0].track.getBoundingClientRect();
     var blockLayerRect = laneElements[0].blocks.getBoundingClientRect();
-    var previousLayerHeight = state.layout.blockLayerHeight;
-    var nextLayerHeight = blockLayerRect.height;
-    var nextLayerWidth = blockLayerRect.width;
-    var nextBlockWidth = clamp(nextLayerWidth * 0.8, 24, 78);
-    var nextBlockHeight = nextBlockWidth;
-    var sampleBlock = laneElements[0].blocks.querySelector(
-      ".lane-block:not(.is-removing):not(.is-stack-impact):not(.is-wrong)"
-    );
-    if (sampleBlock) {
-      // Computed layout dimensions retain fractional CSS pixels while ignoring
-      // spawn, jelly, and removal transforms that affect only the visual box.
-      var computedBlockStyle = window.getComputedStyle(sampleBlock);
-      var sampleWidth = Number.parseFloat(computedBlockStyle.width);
-      var sampleHeight = Number.parseFloat(computedBlockStyle.height);
-      if (sampleWidth > 0 && sampleHeight > 0) {
-        nextBlockWidth = sampleWidth;
-        nextBlockHeight = sampleHeight;
-      }
-    }
-
+    // Hidden menus/orientation transitions must not replace valid geometry with 0.
+    if (blockLayerRect.height <= 0 || blockLayerRect.width <= 0) return;
     state.layout.trackHeight = trackRect.height;
     state.layout.trackWidth = trackRect.width;
-    state.layout.blockLayerHeight = nextLayerHeight;
-    state.layout.blockLayerWidth = nextLayerWidth;
-    state.layout.blockWidth = nextBlockWidth;
-    state.layout.blockHeight = nextBlockHeight;
-    preserveBlockGeometry(previousLayerHeight, nextLayerHeight);
-    document.documentElement.style.setProperty(
-      "--viewport-height",
-      String(window.innerHeight) + "px"
-    );
+    state.layout.blockLayerHeight = blockLayerRect.height;
+    state.layout.blockLayerWidth = blockLayerRect.width;
+    state.layout.blockWidth = clamp(blockLayerRect.width * 0.8, 24, 78);
+    state.layout.blockHeight = blockLayerRect.height * STACK_RUSH_BLOCK_HEIGHT;
+    document.documentElement.style.setProperty("--block-height", String(STACK_RUSH_BLOCK_HEIGHT * 100) + "%");
+    document.documentElement.style.setProperty("--block-font-size",
+      String(Math.max(12, Math.min(state.layout.blockWidth, state.layout.blockHeight) * 0.62)) + "px");
+    // Positions stay normalized. Resize scales the view, not elapsed time, row
+    // count, distance to failure, or the stage's supply profile.
   }
 
   function scheduleLayout() {
@@ -3896,11 +4442,15 @@
   }
 
   function returnToMainMenu() {
+    checkpointRunScore(true);
+    resetImmersion();
     cancelRunPreparation();
     clearCountdownTimers();
     stopBgm(true);
+    stopEffectsAudio();
     state.phase = "start";
     state.pauseReason = null;
+    state.pausedBreakRemaining = null;
     state.stage = 1;
     state.stageRemoved = 0;
     state.stageTarget = getStageTarget(state.stage);
@@ -3940,6 +4490,7 @@
 
     if (!state.bgmEnabled) {
       initialiseRun();
+      primeEffectsAudio();
       bgmEngine.backend = "none";
       beginCountdown();
       return;
@@ -3949,6 +4500,7 @@
     var preparationToken = bgmEngine.preparationToken;
     bgmEngine.preparationActive = true;
     initialiseRun();
+    primeEffectsAudio();
     var preparationStartedAt = performance.now();
     setPreparationVisual();
 
@@ -4000,6 +4552,10 @@
   elements.mainMenuButton.addEventListener("click", returnToMainMenu);
   elements.helpButton.addEventListener("click", openHelp);
   elements.helpCloseButton.addEventListener("click", closeHelp);
+  elements.resetTipsButton.addEventListener("click", function () {
+    saveLearningStep(0);
+    closeHelp();
+  });
   elements.helpDoneButton.addEventListener("click", closeHelp);
   elements.settingsButton.addEventListener("click", openSettings);
   elements.settingsCloseButton.addEventListener("click", closeSettings);
@@ -4014,6 +4570,16 @@
     });
     option.addEventListener("keydown", handleLanguageOptionKeydown);
   });
+  elements.comboSoundToggle.addEventListener("change", function (event) {
+    setEffectPreference("comboSound", event.target.checked);
+  });
+  elements.sfxToggle.addEventListener("change", function (event) {
+    setEffectPreference("sfx", event.target.checked);
+  });
+  elements.hapticToggle.addEventListener("change", function (event) {
+    setEffectPreference("haptic", event.target.checked);
+  });
+
   elements.bgmToggle.addEventListener("change", function (event) {
     setBgmEnabled(event.target.checked);
   });
@@ -4040,7 +4606,25 @@
     }
   });
 
+  elements.pauseButton.addEventListener("click", toggleManualPause);
+  elements.resumeButton.addEventListener("click", resumeManually);
+  elements.burstButton.addEventListener("click", activateBurst);
+
   document.addEventListener("keydown", function (event) {
+    var editing = event.target && (event.target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(event.target.tagName));
+    if (!editing && !event.repeat && !event.altKey && !event.ctrlKey && !event.metaKey &&
+        elements.helpModal.hidden && elements.settingsModal.hidden) {
+      var laneKeys = { Digit1: 0, Digit2: 1, Digit3: 2, Digit4: 3, KeyA: 0, KeyS: 1, KeyD: 2, KeyF: 3 };
+      if (state.phase === "running" && Object.prototype.hasOwnProperty.call(laneKeys, event.code)) {
+        event.preventDefault(); handleLaneClick(laneKeys[event.code]); return;
+      }
+      if (state.phase === "running" && (event.code === "KeyB" || (event.code === "Space" && event.target === document.body))) {
+        event.preventDefault(); activateBurst(); return;
+      }
+      if (event.code === "KeyP" && !elements.gameScreen.hidden) {
+        event.preventDefault(); toggleManualPause(); return;
+      }
+    }
     if (event.key !== "Escape") {
       return;
     }
@@ -4053,6 +4637,9 @@
       closeHelp();
     } else if (!elements.settingsModal.hidden) {
       closeSettings();
+    } else if (!elements.gameScreen.hidden && !event.repeat) {
+      event.preventDefault();
+      toggleManualPause();
     }
   });
 
@@ -4162,6 +4749,7 @@
     clearCountdownTimers();
     clearProjectile(state.resolve);
     stopBgm(true);
+    stopEffectsAudio();
 
     labSession.active = true;
     labSession.scenarioId = scenarioId;
@@ -4174,6 +4762,7 @@
 
     state.phase = "running";
     state.score = 0;
+    resetImmersion();
     state.elapsed = 0;
     state.stageElapsed = 0;
     state.level = 1;
@@ -4190,6 +4779,7 @@
     state.pendingInputs = [];
     state.buttonsLocked = false;
     state.pauseReason = null;
+    state.pausedBreakRemaining = null;
     state.nextWaveNumber = 1;
     state.nextBlockNumber = 1;
     state.nextStackImpactToken = 1;
@@ -4587,6 +5177,7 @@
     ) {
       state.phase = "running";
       state.pauseReason = null;
+    state.pausedBreakRemaining = null;
       elements.countdownLayer.hidden = true;
       state.lastFrameTime = performance.now();
     }
@@ -4638,6 +5229,7 @@
     ) {
       state.phase = "running";
       state.pauseReason = null;
+    state.pausedBreakRemaining = null;
       elements.countdownLayer.hidden = true;
       state.lastFrameTime = performance.now();
     }
@@ -4851,6 +5443,10 @@
     getState: function () {
       return {
         phase: state.phase,
+        immersion: Object.assign({}, state.immersion, {
+          fastHits: state.immersion.fastHits.map(function (hit) { return Object.assign({}, hit); }),
+          noticeQueue: state.immersion.noticeQueue.map(function (entry) { return Object.assign({}, entry); })
+        }),
         score: state.score,
         bestScore: state.bestScore,
         elapsed: state.elapsed,
@@ -4895,13 +5491,16 @@
     },
     start: startOrRestart,
     pressLane: handleLaneClick,
+    activateBurst: activateBurst,
+    resume: resumeManually,
     pause: function () {
-      pauseForExternal("manual-test");
+      pauseForExternal("manual");
     }
   };
 
   prepareBgmAssets();
   applyLanguage();
+  updateEffectsUi();
   updateBestScoreUi();
   measureLayout();
   updateOrientationState();

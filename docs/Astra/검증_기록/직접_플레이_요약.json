@@ -1,0 +1,144 @@
+{
+  "date": "2026-09-08",
+  "method": "Unmodified production build, actual browser UI clicks, read-only visible DOM observations; manual pauses between batches. No injected game state, stage skips, score edits, or speed changes.",
+  "first_run": {
+    "finalStage": 16,
+    "score": 17099,
+    "maxCombo": 440,
+    "progress": "36/43",
+    "laneClicks": 440,
+    "burstClicks": 22,
+    "observedBurstCompletions": 21,
+    "result": "game over after no matching bottom block and continued waiting"
+  },
+  "control_setup_attempt": {
+    "stage": 1,
+    "score": 0,
+    "result": "idle game over during tab-control rebinding; excluded from gameplay comparison"
+  },
+  "second_run": {
+    "finalStage": 21,
+    "score": 9043,
+    "currentCombo": 92,
+    "observedMaxCombo": 137,
+    "laneClicks": 483,
+    "burstClicks": 17,
+    "fallbackInputAttempts": 41,
+    "fallbackInputCaveat": "Includes 36 early attempts caused by over-eager controller input; not equivalent to game miss count or forced dead-end count.",
+    "observedBurstCompletions": 17,
+    "stage20ClearConfirmed": true,
+    "finalPaused": true,
+    "finalViewport": {
+      "width": 547,
+      "height": 1072
+    },
+    "stageCompletions": [
+      {
+        "stage": 1,
+        "scoreAfterClear": 122,
+        "target": 12
+      },
+      {
+        "stage": 2,
+        "scoreAfterClear": 277,
+        "target": 14
+      },
+      {
+        "stage": 3,
+        "scoreAfterClear": 424,
+        "target": 14
+      },
+      {
+        "stage": 4,
+        "scoreAfterClear": 608,
+        "target": 17
+      },
+      {
+        "stage": 5,
+        "scoreAfterClear": 901,
+        "target": 17
+      },
+      {
+        "stage": 6,
+        "scoreAfterClear": 1219,
+        "target": 17
+      },
+      {
+        "stage": 7,
+        "scoreAfterClear": 1466,
+        "target": 17
+      },
+      {
+        "stage": 8,
+        "scoreAfterClear": 1843,
+        "target": 17
+      },
+      {
+        "stage": 9,
+        "scoreAfterClear": 2248,
+        "target": 17
+      },
+      {
+        "stage": 10,
+        "scoreAfterClear": 2744,
+        "target": 20
+      },
+      {
+        "stage": 11,
+        "scoreAfterClear": 3330,
+        "target": 20
+      },
+      {
+        "stage": 12,
+        "scoreAfterClear": 3824,
+        "target": 20
+      },
+      {
+        "stage": 13,
+        "scoreAfterClear": 4216,
+        "target": 20
+      },
+      {
+        "stage": 14,
+        "scoreAfterClear": 4598,
+        "target": 20
+      },
+      {
+        "stage": 15,
+        "scoreAfterClear": 5071,
+        "target": 23
+      },
+      {
+        "stage": 16,
+        "scoreAfterClear": 5598,
+        "target": 23
+      },
+      {
+        "stage": 17,
+        "scoreAfterClear": 5965,
+        "target": 23
+      },
+      {
+        "stage": 18,
+        "scoreAfterClear": 6914,
+        "target": 43
+      },
+      {
+        "stage": 19,
+        "scoreAfterClear": 7813,
+        "target": 43
+      },
+      {
+        "stage": 20,
+        "scoreAfterClear": 9043,
+        "target": 48
+      }
+    ]
+  },
+  "limitations": [
+    "Desktop UI automation is not human mobile playtesting.",
+    "Viewport was not fixed and stage targets differed between runs; do not compare scores as equivalent difficulty.",
+    "Notification counts are observed transitions, not a full event log.",
+    "Read-only samples can miss impact frames; stage 3 completion score is taken from stage 4 entry and the clear banner."
+  ]
+}
