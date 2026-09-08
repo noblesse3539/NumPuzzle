@@ -1,0 +1,20 @@
+# Git 전달 기록
+
+작성일: 2026-09-09
+
+## 푸시 완료
+
+- 원격 저장소: [noblesse3539/NumPuzzle](https://github.com/noblesse3539/NumPuzzle)
+- 전달 브랜치: [codex/astra-five-rounds](https://github.com/noblesse3539/NumPuzzle/tree/codex/astra-five-rounds)
+- 제품·검사·기록 커밋: `82b516d`
+- 원본 제안 PDF 포함 커밋: `5ac0506dde6219952c490f07e37cd568d559072c`
+- 원격 브랜치 조회에서 위 `5ac0506`과 로컬 HEAD의 전체 해시가 같음을 확인했습니다.
+- 이 전달 기록을 추가한 문서 커밋도 같은 브랜치에 후속 푸시합니다.
+
+구현과 기록 5회, 회차 이후의 일괄 통합 검사, 실제 20스테이지 클리어를 마치고 푸시했습니다. production 브랜치 병합이나 배포 조작은 하지 않았습니다.
+
+## 과정에서 해결한 환경 문제
+
+기본 SSH 인증은 `Permission denied (publickey)`, HTTPS 쓰기는 사용자 인증 부재로 실패했습니다. 저장된 NumPuzzle 전용 SSH 키를 저장소 설정에서 명시해 연결과 푸시를 완료했습니다. 키 내용은 읽거나 기록하지 않았습니다.
+
+원본 PDF의 한글 분해/조합 파일명 차이는 이 저장소의 Unicode 처리 설정을 맞춰 해결했습니다. 원본 파일은 삭제하거나 내용을 바꾸지 않았습니다. 생성 산출물과 임시 파일은 Git에서 제외했습니다.

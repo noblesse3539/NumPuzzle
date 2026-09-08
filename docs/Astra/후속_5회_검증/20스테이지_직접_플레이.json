@@ -1,0 +1,235 @@
+{
+  "date": "2026-09-09",
+  "build": "production, unmodified browser assets",
+  "method": "Actual browser button clicks with read-only visible DOM observations. No game-state injection, stage skips, score changes or difficulty overrides. Manual pauses used between observation batches.",
+  "viewport": [
+    547,
+    1072
+  ],
+  "final": {
+    "stage": 21,
+    "score": 31881,
+    "combo": 679,
+    "progress": "0/57",
+    "paused": true,
+    "stage20Clear": true
+  },
+  "actions": {
+    "laneClicks": 679,
+    "burstClicks": 9,
+    "intentionalMissInputs": 0
+  },
+  "stageCompletions": [
+    {
+      "stage": 1,
+      "target": 12,
+      "score": 133,
+      "combo": 12,
+      "clearBannerObserved": true
+    },
+    {
+      "stage": 2,
+      "target": 14,
+      "score": 307,
+      "combo": 26,
+      "clearBannerObserved": true
+    },
+    {
+      "stage": 3,
+      "target": 16,
+      "score": 529,
+      "combo": 42,
+      "clearBannerObserved": true
+    },
+    {
+      "stage": 4,
+      "target": 18,
+      "score": 809,
+      "combo": 60,
+      "clearBannerObserved": true
+    },
+    {
+      "stage": 5,
+      "target": 22,
+      "score": 1197,
+      "combo": 82,
+      "clearBannerObserved": true
+    },
+    {
+      "stage": 6,
+      "target": 24,
+      "score": 1675,
+      "combo": 106,
+      "clearBannerObserved": true
+    },
+    {
+      "stage": 7,
+      "target": 26,
+      "score": 2257,
+      "combo": 132,
+      "clearBannerObserved": true
+    },
+    {
+      "stage": 8,
+      "target": 28,
+      "score": 2959,
+      "combo": 160,
+      "clearBannerObserved": true
+    },
+    {
+      "stage": 9,
+      "target": 30,
+      "score": 3799,
+      "combo": 190,
+      "clearBannerObserved": true
+    },
+    {
+      "stage": 10,
+      "target": 36,
+      "score": 5027,
+      "combo": 226,
+      "clearBannerObserved": true
+    },
+    {
+      "stage": 11,
+      "target": 38,
+      "score": 6357,
+      "combo": 264,
+      "clearBannerObserved": true
+    },
+    {
+      "stage": 12,
+      "target": 40,
+      "score": 7963,
+      "combo": 304,
+      "clearBannerObserved": true
+    },
+    {
+      "stage": 13,
+      "target": 40,
+      "score": 9779,
+      "combo": 344,
+      "clearBannerObserved": true
+    },
+    {
+      "stage": 14,
+      "target": 43,
+      "score": 12052,
+      "combo": 387,
+      "clearBannerObserved": true
+    },
+    {
+      "stage": 15,
+      "target": 46,
+      "score": 14771,
+      "combo": 433,
+      "clearBannerObserved": true
+    },
+    {
+      "stage": 16,
+      "target": 48,
+      "score": 17568,
+      "combo": 481,
+      "clearBannerObserved": true
+    },
+    {
+      "stage": 17,
+      "target": 48,
+      "score": 20646,
+      "combo": 529,
+      "clearBannerObserved": true
+    },
+    {
+      "stage": 18,
+      "target": 48,
+      "score": 23805,
+      "combo": 577,
+      "clearBannerObserved": true
+    },
+    {
+      "stage": 19,
+      "target": 48,
+      "score": 27444,
+      "combo": 625,
+      "clearBannerObserved": true
+    },
+    {
+      "stage": 20,
+      "target": 54,
+      "score": 31881,
+      "combo": 679,
+      "clearBannerObserved": true
+    }
+  ],
+  "burstObservations": [
+    {
+      "stage": 9,
+      "scoreBefore": 3770,
+      "sampledMaxDepth": 0.0645282451923077,
+      "reconnectHint": true
+    },
+    {
+      "stage": 13,
+      "scoreBefore": 9147,
+      "sampledMaxDepth": 0.01543753810182831,
+      "reconnectHint": true
+    },
+    {
+      "stage": 14,
+      "scoreBefore": 10329,
+      "sampledMaxDepth": 0.1585440551035503,
+      "reconnectHint": false
+    },
+    {
+      "stage": 14,
+      "scoreBefore": 11417,
+      "sampledMaxDepth": 0.3075131749260355,
+      "reconnectHint": false
+    },
+    {
+      "stage": 15,
+      "scoreBefore": 12649,
+      "sampledMaxDepth": 0.4547603088017751,
+      "reconnectHint": false
+    },
+    {
+      "stage": 16,
+      "scoreBefore": 16544,
+      "sampledMaxDepth": 0.01543753810182831,
+      "reconnectHint": true
+    },
+    {
+      "stage": 17,
+      "scoreBefore": 20105,
+      "sampledMaxDepth": 0.07001779770710059,
+      "reconnectHint": true
+    },
+    {
+      "stage": 19,
+      "scoreBefore": 25641,
+      "sampledMaxDepth": 0.07061875924556213,
+      "reconnectHint": true
+    },
+    {
+      "stage": 19,
+      "scoreBefore": 27175,
+      "sampledMaxDepth": 0.35624884430473375,
+      "reconnectHint": false
+    }
+  ],
+  "observedNotices": {
+    "번개 연쇄!": 28,
+    "버스트 준비 완료": 10,
+    "현재 NEXT와 맞는 맨 아래 블록이 없어요": 72,
+    "버스트 · 막힌 NEXT 연결!": 5,
+    "4 CHAIN! +100": 9,
+    "시간은 느리게, 네 번은 정확하게": 4,
+    "최고기록 돌파!": 1
+  },
+  "limitations": [
+    "An accurately controlled desktop run does not establish human mobile difficulty.",
+    "Notice transition counts are samples, not event totals or time ratios.",
+    "Four ordinary activations occurred when no highlighted candidate was observed, not at a verified red-line emergency.",
+    "Score cannot be compared directly to previous builds with different row geometry."
+  ]
+}

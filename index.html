@@ -2,7 +2,7 @@
 <html lang="ko">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="theme-color" content="#fff8ee" />
     <meta
       name="description"
@@ -61,6 +61,8 @@
                 <span class="rush-intro-copy">
                   <strong class="rush-intro-title" id="rushTitle" data-i18n="stackRushModeName">스택 러시</strong>
                   <span class="rush-intro-tagline" data-i18n="stackRushModeTagline">끝없이 내려오는 블록들을 제거하세요</span>
+                  <span id="personalGoal" class="personal-goal"></span>
+                  <span id="lastRunNote" class="last-run-note"></span>
                   <span class="rush-intro-best"><span data-i18n="best">최고 점수</span> <strong id="stackRushBestScore">0</strong></span>
                 </span>
                 <span class="rush-intro-mark" aria-hidden="true">↗</span>
@@ -100,9 +102,12 @@
               </div>
             </div>
 
+            <div class="game-controls">
+            <button class="icon-button pause-button" id="pauseButton" type="button" data-i18n-aria="pauseAria" aria-label="일시정지" aria-keyshortcuts="P Escape"><span aria-hidden="true">Ⅱ</span></button>
             <button class="icon-button music-toggle" id="musicButton" type="button" data-i18n-aria="musicButtonAria">
               <span class="music-icon" aria-hidden="true">♪</span>
             </button>
+            </div>
           </header>
 
           <div class="game-status-row">
@@ -130,43 +135,59 @@
             <div class="combo-hud" data-i18n-aria="currentComboAria" aria-label="현재 콤보">
               <span class="hud-label" data-i18n="combo">COMBO</span>
               <strong class="combo-value" id="comboValue">x0</strong>
+              <span id="flowTier" class="flow-tier" aria-hidden="true"></span>
               <span class="hud-feedback" id="feedbackText" hidden aria-live="polite"></span>
             </div>
           </div>
 
+          <div class="immersion-strip">
+            <span id="immersionNotice" class="immersion-notice" role="status" aria-live="polite"></span>
+            <span id="recordChase" class="record-chase"></span>
+          </div>
           <section class="game-board" id="gameBoard" data-i18n-aria="gameBoardAria" aria-label="숫자 블록 라인">
             <div class="lane" data-lane="0">
               <div class="lane-track">
                 <div class="lane-blocks" aria-hidden="true"></div>
+                <span class="lane-danger-marker" aria-hidden="true">!</span>
                 <div class="red-line" aria-hidden="true"></div>
               </div>
-              <button class="lane-button" type="button" data-lane="0" data-i18n-aria="lane1Aria" aria-label="1번 라인 선택"></button>
+              <button class="lane-button" type="button" data-lane="0" aria-keyshortcuts="1 A" data-i18n-aria="lane1Aria" aria-label="1번 라인 선택"></button>
             </div>
 
             <div class="lane" data-lane="1">
               <div class="lane-track">
                 <div class="lane-blocks" aria-hidden="true"></div>
+                <span class="lane-danger-marker" aria-hidden="true">!</span>
                 <div class="red-line" aria-hidden="true"></div>
               </div>
-              <button class="lane-button" type="button" data-lane="1" data-i18n-aria="lane2Aria" aria-label="2번 라인 선택"></button>
+              <button class="lane-button" type="button" data-lane="1" aria-keyshortcuts="2 S" data-i18n-aria="lane2Aria" aria-label="2번 라인 선택"></button>
             </div>
 
             <div class="lane" data-lane="2">
               <div class="lane-track">
                 <div class="lane-blocks" aria-hidden="true"></div>
+                <span class="lane-danger-marker" aria-hidden="true">!</span>
                 <div class="red-line" aria-hidden="true"></div>
               </div>
-              <button class="lane-button" type="button" data-lane="2" data-i18n-aria="lane3Aria" aria-label="3번 라인 선택"></button>
+              <button class="lane-button" type="button" data-lane="2" aria-keyshortcuts="3 D" data-i18n-aria="lane3Aria" aria-label="3번 라인 선택"></button>
             </div>
 
             <div class="lane" data-lane="3">
               <div class="lane-track">
                 <div class="lane-blocks" aria-hidden="true"></div>
+                <span class="lane-danger-marker" aria-hidden="true">!</span>
                 <div class="red-line" aria-hidden="true"></div>
               </div>
-              <button class="lane-button" type="button" data-lane="3" data-i18n-aria="lane4Aria" aria-label="4번 라인 선택"></button>
+              <button class="lane-button" type="button" data-lane="3" aria-keyshortcuts="4 F" data-i18n-aria="lane4Aria" aria-label="4번 라인 선택"></button>
             </div>
           </section>
+
+          <button id="burstButton" class="burst-button" type="button" aria-keyshortcuts="B" disabled>
+            <span class="burst-main"><strong id="burstTitle">BURST · 0 / 16</strong>
+              <span class="burst-steps" aria-hidden="true"><i class="burst-step"></i><i class="burst-step"></i><i class="burst-step"></i><i class="burst-step"></i></span>
+            </span>
+            <span id="burstHint">정답을 모아 위기를 뒤집으세요</span>
+          </button>
 
           <div class="run-banner" id="runBanner" hidden role="status" aria-live="polite">
             <span class="run-banner-kicker" id="runBannerKicker">STAGE 1</span>
@@ -177,6 +198,7 @@
           <div class="countdown-layer" id="countdownLayer" hidden aria-live="assertive">
             <span class="countdown-caption" id="countdownCaption">GET READY</span>
             <strong class="countdown-number" id="countdownNumber">3</strong>
+            <button class="primary-button resume-button" id="resumeButton" type="button" data-i18n="resume" hidden>계속하기</button>
           </div>
         </section>
 
@@ -256,6 +278,7 @@
             <div class="help-copy">
               <p data-i18n="helpBody">빨간 선에 닿기 전에 내려오는 숫자 블록을 제거하세요.</p>
             </div>
+            <button class="text-button reset-tips-button" id="resetTipsButton" type="button" data-i18n="resetTips">첫 플레이 안내 다시 보기</button>
             <button class="secondary-button" id="helpDoneButton" type="button" data-i18n="confirm">확인</button>
           </div>
         </div>
@@ -315,6 +338,18 @@
                 </label>
               </div>
 
+              <div class="setting-row">
+                <label class="setting-label" for="sfxToggle" data-i18n="sfx">효과음</label>
+                <label class="switch-control"><input class="switch-input" id="sfxToggle" type="checkbox" role="switch" data-i18n-aria="sfxAria" aria-label="효과음 켜기/끄기" /><span class="switch-visual" aria-hidden="true"></span></label>
+              </div>
+              <div class="setting-row">
+                <label class="setting-label" for="hapticToggle" data-i18n="haptic">진동</label>
+                <label class="switch-control"><input class="switch-input" id="hapticToggle" type="checkbox" role="switch" data-i18n-aria="hapticAria" aria-label="진동 켜기/끄기" /><span class="switch-visual" aria-hidden="true"></span></label>
+              </div>
+              <div class="setting-row">
+                <label class="setting-label" for="comboSoundToggle" data-i18n="comboSound">콤보 화음</label>
+                <label class="switch-control"><input class="switch-input" id="comboSoundToggle" type="checkbox" role="switch" data-i18n-aria="comboSoundAria" aria-label="콤보 화음 켜기/끄기" /><span class="switch-visual" aria-hidden="true"></span></label>
+              </div>
               <div class="setting-row setting-volume-row">
                 <div class="setting-label-group">
                   <label class="setting-label" for="bgmVolume" data-i18n="bgmVolume">BGM 음량</label>

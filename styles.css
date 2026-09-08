@@ -921,12 +921,13 @@ button:focus-visible {
   width: 80%;
   max-width: 78px;
   min-width: 24px;
-  aspect-ratio: 1;
+  height: var(--block-height, 10%);
+  aspect-ratio: auto;
   border-width: 2px;
   border-style: solid;
   border-radius: 7px;
   color: var(--ink);
-  font-size: clamp(1.2rem, min(8.8vw, 5.1vh), 3rem);
+  font-size: var(--block-font-size, 1.2rem);
   font-variant-numeric: tabular-nums;
   font-weight: 800;
   line-height: 0.9;
@@ -2089,3 +2090,71 @@ button:focus-visible {
     transform: scale(1);
   }
 }
+
+/* A compact, thumb-reachable climax control; all effects stay out of hit testing. */
+.immersion-strip { display:flex; justify-content:space-between; gap:6px; min-height:16px; flex:0 0 auto; font-size:11px; font-weight:750; }
+.immersion-notice { color:#137e79; }
+.record-chase { color:#8a6019; margin-left:auto; white-space:nowrap; }
+.burst-button { position:relative; isolation:isolate; overflow:hidden; flex:0 0 auto; width:100%; min-height:48px; border:1px solid #9ac8c0; border-radius:14px; background:#e6f0eb; color:#305d59; display:flex; align-items:center; justify-content:space-between; gap:8px; padding:9px 13px; text-align:left; touch-action:manipulation; }
+.burst-button::before { content:""; position:absolute; z-index:-1; inset:0; width:var(--charge,0%); background:#baded2; transition:width 100ms linear; }
+.burst-button strong { font-size:13px; letter-spacing:.04em; white-space:nowrap; }
+.burst-button span { font-size:11px; line-height:1.3; }
+.burst-button:disabled { opacity:1; cursor:default; }
+.burst-button.is-ready { border-color:#158879; color:#075d53; box-shadow:0 0 0 2px #aedbd0; }
+.burst-button.is-ready:not(:disabled) { cursor:pointer; }
+.burst-button.is-active { background:#193b4a; border-color:#478d9d; color:#fff; }
+.burst-button.is-active::before { background:#286475; }
+.burst-button:focus-visible { outline:3px solid #245cbe; outline-offset:2px; }
+.game-board.is-burst .lane-track { border-color:#4ca997; box-shadow:inset 0 0 16px #70cdb333; }
+.hit-points, .hit-spark { position:absolute; left:50%; pointer-events:none; z-index:8; }
+.hit-points { font-size:18px; font-weight:900; color:#09665b; text-shadow:0 1px 3px #fff,0 0 5px #fff; animation:hit-reward 620ms ease-out forwards; }
+.hit-spark { width:5px; height:5px; border-radius:2px; background:#289980; animation:hit-spark 450ms ease-out forwards; }
+@keyframes hit-reward { from { transform:translate(-50%,0) scale(.85); opacity:1; } to { transform:translate(-50%,-32px) scale(1.1); opacity:0; } }
+@keyframes hit-spark { from { transform:translate(-50%,0); opacity:1; } to { transform:translate(var(--dx),var(--dy)); opacity:0; } }
+@media (max-height:700px) { .game-screen { gap:6px; } .burst-button { min-height:44px; padding:6px 10px; } .immersion-strip { font-size:10px; } }
+@media (prefers-reduced-motion:reduce) { .hit-points { animation:none; transform:translateX(-50%); } .hit-spark { display:none; } .burst-button::before { transition:none; } }
+
+.burst-main { display:flex; flex-direction:column; gap:5px; }
+.burst-steps { display:flex; gap:4px; }
+.burst-step { width:16px; height:3px; border-radius:2px; background:currentColor; opacity:.2; }
+.burst-step.is-done { opacity:1; }
+.game-board.is-burst-release .lane-track { border-color:#d1ad51; box-shadow:inset 0 0 18px #f0d88a44; }
+
+.game-board { position:relative; }
+.lightning-trace { position:absolute; inset:0; width:100%; height:100%; z-index:7; pointer-events:none; overflow:hidden; animation:lightning-fade 550ms ease-out forwards; }
+.lightning-trace polyline { fill:none; stroke:#29999b; stroke-width:3; stroke-linecap:round; stroke-linejoin:round; }
+@keyframes lightning-fade { from { opacity:.9; } to { opacity:0; } }
+@media (prefers-reduced-motion:reduce) { .lightning-trace { display:none; } }
+
+.lane-danger-marker { position:absolute; right:5px; bottom:12%; z-index:5; width:17px; height:17px; border-radius:50%; background:#a9303f; color:white; text-align:center; font-size:12px; font-weight:900; opacity:0; pointer-events:none; }
+.lane.is-danger .lane-danger-marker { opacity:1; }
+.game-board.is-clutch-release .red-line { background:#198c81; box-shadow:0 0 0 5px #51b9a633; }
+.immersion-strip { align-items:center; }
+.immersion-notice { min-width:0; line-height:1.35; }
+
+.flow-tier { display:block; min-height:10px; color:#21796c; font-size:9px; font-weight:800; letter-spacing:.03em; }
+.flow-tier[data-tier="3"] { color:#966523; }
+
+.reset-tips-button { min-height:40px; margin:8px 0; border:0; background:transparent; color:#1b766b; text-decoration:underline; font:inherit; font-size:12px; cursor:pointer; }
+.help-card { max-height:calc(100dvh - 40px - var(--safe-top) - var(--safe-bottom)); overflow:auto; }
+
+.personal-goal, .last-run-note { display:block; font-size:11px; line-height:1.5; color:#346f63; overflow-wrap:anywhere; }
+.last-run-note { color:var(--ink-muted); }
+.last-run-note:empty { display:none; }
+
+.game-controls { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:5px; }
+.game-controls .icon-button { width:44px; height:44px; min-width:44px; font-size:18px; }
+.game-controls .music-toggle { align-self:auto; }
+.pause-button:disabled { opacity:.45; }
+.resume-button { min-width:150px; min-height:44px; margin-top:18px; pointer-events:auto; }
+.resume-button[hidden] { display:none; }
+@media (max-width:360px) { .game-controls { flex-direction:column; align-items:flex-end; } }
+
+/* Keep the persistent FLOW tier clear of the short result label. */
+.combo-hud { height:66px; min-height:66px; padding-bottom:15px; }
+/* Keep translated volume labels and numeric values above the full-width slider. */
+.setting-volume-row { grid-template-columns:minmax(0, 1fr); gap:4px; }
+.setting-volume-row .volume-control { min-width:0; }
+
+/* One buffered tap belongs to the visible NEXT. */
+.lane-button.is-queued { box-shadow: inset 0 0 0 2px var(--ink); opacity: .75; }
