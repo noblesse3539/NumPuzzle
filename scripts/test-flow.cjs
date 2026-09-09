@@ -49,16 +49,16 @@ const results=[];
     assert.ok(values.every(([v,s])=>[1,3,4].includes(v)&&s==='visible-window'));
   });
   await test('Safe supply advances scheduled timer but never danger or budget',async()=>{
-    const checks=await page.evaluate(()=>{const s=__flowTest.state;s.difficulty.spawnWaveCount=2;__flowTest.board([[2],[],[],[]],1,2,.1);s.waveTimer=5;__flowTest.supply();const safe=s.waveTimer;__flowTest.board([[2],[],[],[]],1,2,.8);s.waveTimer=5;__flowTest.supply();const danger=s.waveTimer;__flowTest.board([[],[],[],[]],1,2);s.stageSpawnedWaveCount=2;s.waveTimer=5;__flowTest.supply();return {safe,danger,budget:s.waveTimer};});
-    assert.deepEqual(checks,{safe:.45,danger:5,budget:5});
+    const checks=await page.evaluate(()=>{const s=__flowTest.state;s.difficulty.spawnWaveCount=2;s.futureWaves[0].values=[1,1,1,1];__flowTest.board([[2],[],[],[]],1,2,.1);s.waveTimer=5;__flowTest.supply();const safe=s.waveTimer;__flowTest.board([[2],[],[],[]],1,2,.8);s.waveTimer=5;__flowTest.supply();const danger=s.waveTimer;__flowTest.board([[],[],[],[]],1,2);s.stageSpawnedWaveCount=2;s.waveTimer=5;__flowTest.supply();return {safe,danger,budget:s.waveTimer};});
+    assert.deepEqual(checks,{safe:.2,danger:5,budget:5});
   });
   await test('Burst recovery slows board and retains original score',async()=>{
     const value=await page.evaluate(()=>{const s=__flowTest.state;s.immersion.charge=16;FOURCAST.activateBurst();for(let i=0;i<4;i++){__flowTest.board([[1,1],[],[],[]],1,1);__flowTest.hit(0);}const before=s.stageElapsed;__flowTest.step(.5);return {score:s.score,delta:s.stageElapsed-before,completed:s.immersion.completed};});
     assert.equal(value.score,143);assert.equal(value.completed,1);assert.ok(Math.abs(value.delta-.325)<1e-6);
   });
   await test('Blocked Burst reports absence without promising supply and board keeps moving',async()=>{
-    const value=await page.evaluate(()=>{const s=__flowTest.state;__flowTest.board([[2],[3],[4],[2]],1,2,.3);s.immersion.remaining=5;s.immersion.noticeUntil=0;s.difficulty.spawnWaveCount=0;const before=s.stageElapsed;__flowTest.step(.5);return {remaining:s.immersion.remaining,delta:s.stageElapsed-before,hint:document.getElementById('burstHint').textContent,notice:document.getElementById('immersionNotice').textContent};});
-    assert.equal(value.remaining,5);assert.ok(Math.abs(value.delta-.2)<1e-6);assert.match(value.hint,/일치하는 블록 없음/);assert.match(value.notice,/맞는 맨 아래 블록이 없어요/);
+    const value=await page.evaluate(()=>{const s=__flowTest.state;__flowTest.board([[2],[3],[4],[2]],1,2,.3);s.immersion.remaining=5;s.immersion.noticeUntil=0;s.difficulty.spawnWaveCount=0;const before=s.stageElapsed;__flowTest.step(.7);return {remaining:s.immersion.remaining,delta:s.stageElapsed-before,hint:document.getElementById('burstHint').textContent,notice:document.getElementById('immersionNotice').textContent};});
+    assert.equal(value.remaining,5);assert.ok(Math.abs(value.delta-.28)<1e-6);assert.match(value.hint,/일치하는 블록 없음/);assert.match(value.notice,/맞는 맨 아래 블록이 없어요/);
   });
   await test('Lightning has bounded effects and resets on miss',async()=>{
     const outcome=await page.evaluate(()=>{for(let i=0;i<4;i++){__flowTest.board([[1,1],[],[],[]],1,1);__flowTest.hit(0);}const count=__flowTest.state.immersion.lightningCount;__flowTest.board([[2],[],[],[]],1,1);__flowTest.hit(0);return {count,hits:__flowTest.state.immersion.fastHits.length,lines:document.querySelectorAll('.lightning-trace').length};});
@@ -102,9 +102,9 @@ const results=[];
     assert.equal(await page.evaluate(()=>localStorage.getItem('fourcast-learning-step')),'3');
   });
   await test('Record checkpoint, last-run summary and external newer record survive',async()=>{
-    const outcome=await page.evaluate(()=>{__flowTest.board([[1],[],[],[]],1,1);__flowTest.hit(0);__flowTest.checkpoint(true);const first=localStorage.getItem('fourcast-stack-rush-best-score');localStorage.setItem('fourcast-stack-rush-best-score','900');__flowTest.board([[1],[],[],[]],1,1);__flowTest.hit(0);__flowTest.end('red-line');return {first,best:localStorage.getItem('fourcast-stack-rush-best-score'),summary:__flowTest.readSummary()};});
+    const outcome=await page.evaluate(()=>{__flowTest.board([[1],[],[],[]],1,1);__flowTest.hit(0);__flowTest.checkpoint(true);const first=localStorage.getItem('fourcast-pressure-log-v1-best-score');localStorage.setItem('fourcast-pressure-log-v1-best-score','900');__flowTest.board([[1],[],[],[]],1,1);__flowTest.hit(0);__flowTest.end('red-line');return {first,best:localStorage.getItem('fourcast-pressure-log-v1-best-score'),summary:__flowTest.readSummary()};});
     assert.equal(outcome.first,'10');assert.equal(outcome.best,'900');assert.equal(outcome.summary.score,21);
-    await page.evaluate(()=>localStorage.setItem('fourcast-last-run-v1','{"version":1,"score":-1}'));assert.equal(await page.evaluate(()=>__flowTest.readSummary()),null);
+    await page.evaluate(()=>localStorage.setItem('fourcast-pressure-log-v1-last-run','{"version":1,"score":-1}'));assert.equal(await page.evaluate(()=>__flowTest.readSummary()),null);
   });
   mkdirSync('tmp/flow',{recursive:true});
   await test('Mobile and English controls, dialogs and hit regions fit',async()=>{

@@ -4,7 +4,7 @@
   var LANE_COUNT = 4;
   var DIGITS = [1, 2, 3, 4];
   var MODE_STACK_RUSH = "stack-rush";
-  var MAX_PENDING_INPUTS = 1;
+  var MAX_SHOT_EFFECTS = 12;
   var SCORE_PER_BLOCK = 10;
   var BURST_CHARGE_TARGET = 16;
   var BURST_DURATION = 6;
@@ -13,14 +13,12 @@
   var RED_LINE_Y = 0.9;
   var FEEDBACK_DURATION_MS = 350;
   var PROJECTILE_DURATION_MS = 190;
-  var STACK_RUSH_PROJECTILE_DURATION_MS = Math.round(
-    PROJECTILE_DURATION_MS / 1.5
-  );
+  var STACK_RUSH_PROJECTILE_DURATION_MS = 70;
   var SHRINK_DURATION_MS = 160;
-  var COUNTDOWN_SECONDS = 3;
+  var COUNTDOWN_SECONDS = 2;
   var SPAWN_FEEDBACK_DURATION_MS = 160;
   var STACK_JELLY_DURATION_MS = 180;
-  var STAGE_DURATION_SECONDS = 30;
+  var STAGE_DURATION_SECONDS = 24;
   var STACK_RUSH_INITIAL_WAVE_COUNT = 2;
   var STACK_RUSH_STAGE_END_MARGIN_SECONDS = 0.5;
   var STACK_RUSH_WAVE_GAP_RATIO = 0.03;
@@ -28,11 +26,10 @@
   var STACK_RUSH_WAVE_GAP_EPSILON = 0.0001;
   var STACK_RUSH_TARGET_SUPPLY_RATIO = 0.72;
   var STACK_RUSH_STAGE_ONE_FALL_DURATION_SECONDS = 30;
-  var STACK_RUSH_NORMAL_FALL_FACTOR = 0.985;
-  var STACK_RUSH_PRESSURE_FALL_FACTOR = 0.88;
-  var STACK_RUSH_MIN_FALL_DURATION_SECONDS = 8;
-  var STAGE_BANNER_DURATION_MS = 1800;
-  var STAGE_BREAK_DURATION_MS = 700;
+  var STACK_RUSH_LOG_SPEED_FACTOR = 0.4393836814067496;
+  var STACK_RUSH_PRESSURE_CURVE_STRENGTH = 2.4;
+  var STAGE_BANNER_DURATION_MS = 900;
+  var STAGE_BREAK_DURATION_MS = 250;
   var PHASE_STAGE_BREAK = "stage-break";
   var HUD_FEEDBACK_DURATION_MS = 650;
   var NEXT_SAFETY_PULSE_DURATION_MS = 300;
@@ -45,13 +42,15 @@
   var BGM_SOURCE_URL = "./audio/fourcast-bgm-v2.wav";
   var LANGUAGE_STORAGE_KEY = "fourcast-language";
   var BGM_ENABLED_STORAGE_KEY = "fourcast-bgm-enabled";
-  var LAST_RUN_STORAGE_KEY = "fourcast-last-run-v1";
+  var RULESET_ID = "pressure-log-v1";
+  var LAST_RUN_STORAGE_KEY = "fourcast-pressure-log-v1-last-run";
   var LEARNING_STORAGE_KEY = "fourcast-learning-step";
   var COMBO_SOUND_STORAGE_KEY = "fourcast-combo-sound-enabled";
   var SFX_STORAGE_KEY = "fourcast-sfx-enabled";
   var HAPTIC_STORAGE_KEY = "fourcast-haptic-enabled";
   var BGM_VOLUME_STORAGE_KEY = "fourcast-bgm-volume";
-  var BEST_SCORE_STORAGE_KEY = "fourcast-stack-rush-best-score";
+  var BEST_SCORE_STORAGE_KEY = "fourcast-pressure-log-v1-best-score";
+  var PREVIOUS_BEST_SCORE_STORAGE_KEY = "fourcast-stack-rush-best-score";
   var LEGACY_STACK_RUSH_SCORES_STORAGE_KEY = "fourcast-best-scores";
   var DEFAULT_LANGUAGE = "ko";
   var DEFAULT_BGM_VOLUME = 0.6;
@@ -62,12 +61,12 @@
       helpButtonAria: "게임 방법",
       settingsButtonAria: "설정",
       stackRushModeName: "스택 러시",
-      stackRushModeTagline: "끝없이 내려오는 블록들을 제거하세요",
+      stackRushModeTagline: "빨간 선에 닿기 전에, 맞히고 살아남으세요",
       bestScoreAria: "최고 점수",
       siteIntro: "네 개의 라인에서 숫자를 맞추고, 다음 스테이지까지 살아남으세요.",
       siteLinksAria: "사이트 정보",
       privacyLink: "개인정보처리방침",
-      contactLink: "문의·크레딧",
+      contactLink: "문의",
       adLabel: "광고",
       start: "시작",
       preparing: "준비 중…",
@@ -75,7 +74,7 @@
       stage: "스테이지",
       combo: "콤보",
       next: "다음",
-      best: "최고 점수",
+      best: "최고점",
       stageProgressAria: "스테이지 목표 진행",
       currentComboAria: "현재 콤보",
       nextDisplayAria: "현재 Next와 다음 Next",
@@ -89,7 +88,7 @@
       lane2Aria: "2번 라인 선택",
       lane3Aria: "3번 라인 선택",
       lane4Aria: "4번 라인 선택",
-      gameOver: "게임 오버",
+      gameOver: "게임 오버", stageRemaining: "스테이지 남은 시간",
       restart: "다시 시작",
       mainMenu: "메인 메뉴",
       stageClear: "스테이지 클리어",
@@ -108,7 +107,7 @@
       helpTitle: "게임 방법",
       resetTips: "첫 플레이 안내 다시 보기",
       closeHelpAria: "도움말 닫기",
-      helpBody: "빨간 선에 닿기 전에 내려오는 숫자 블록을 제거하세요. 정답 16개로 버스트를 충전하세요. 준비되면 버스트 버튼을 눌러 선택 가능한 6초 안에 4연속 정답으로 +100점을 받으세요. 막혔을 때 발동하면 NEXT를 다시 연결합니다. 다음 블록을 기다릴 때는 제한 시간이 멈춥니다. 오답은 충전 4칸을 잃거나 버스트를 종료합니다. 키보드 1~4 또는 A/S/D/F는 왼쪽부터 라인을 선택합니다. B는 버스트, P 또는 Esc는 일시정지입니다.",
+      helpBody: "빨간 선에 닿기 전에 내려오는 숫자 블록을 하단의 버튼을 눌러 제거하세요.\n키보드 1~4 또는 A/S/D/F로도 버튼을 누를 수 있습니다. B는 버스트, P 또는 Esc는 일시정지입니다.",
       confirm: "확인",
       settingsTitle: "설정",
       closeSettingsAria: "설정 닫기",
@@ -132,12 +131,12 @@
       helpButtonAria: "How to play",
       settingsButtonAria: "Settings",
       stackRushModeName: "STACK RUSH",
-      stackRushModeTagline: "REMOVE THE ENDLESSLY FALLING BLOCKS.",
+      stackRushModeTagline: "Match the blocks. Survive the red line.",
       bestScoreAria: "Best score",
       siteIntro: "Match the falling numbers across four lanes and survive each stage.",
       siteLinksAria: "Site information",
       privacyLink: "Privacy policy",
-      contactLink: "Contact & credits",
+      contactLink: "Contact",
       adLabel: "Advertisement",
       start: "START",
       preparing: "PREPARING…",
@@ -159,7 +158,7 @@
       lane2Aria: "Select lane 2",
       lane3Aria: "Select lane 3",
       lane4Aria: "Select lane 4",
-      gameOver: "GAME OVER",
+      gameOver: "GAME OVER", stageRemaining: "Stage time remaining",
       restart: "RESTART",
       mainMenu: "MAIN MENU",
       stageClear: "STAGE CLEAR",
@@ -178,7 +177,7 @@
       helpTitle: "HOW TO PLAY",
       resetTips: "Show beginner tips again",
       closeHelpAria: "Close help",
-      helpBody: "Remove blocks before the red line. Charge Burst with 16 correct hits. Tap the ready Burst button, then make 4 consecutive hits within 6 playable seconds for +100 points. Activating while blocked reconnects NEXT. The timer pauses while waiting for the next block. A miss costs 4 charge or ends an active Burst. Keys 1–4 or A/S/D/F select lanes from left to right. B activates Burst. P or Esc pauses.",
+      helpBody: "Press the buttons at the bottom to remove falling number blocks before they reach the red line.\nYou can also use keys 1–4 or A/S/D/F to press the buttons. B activates Burst; P or Esc pauses the game.",
       confirm: "OK",
       settingsTitle: "SETTINGS",
       closeSettingsAria: "Close settings",
@@ -243,6 +242,7 @@
     resetTipsButton: document.getElementById("resetTipsButton"),
     personalGoal: document.getElementById("personalGoal"),
     lastRunNote: document.getElementById("lastRunNote"),
+    previousRecordNote: document.getElementById("previousRecordNote"),
     pauseButton: document.getElementById("pauseButton"),
     resumeButton: document.getElementById("resumeButton"),
     burstSteps: Array.prototype.slice.call(document.querySelectorAll(".burst-step")),
@@ -264,6 +264,8 @@
     countdownLayer: document.getElementById("countdownLayer"),
     countdownCaption: document.getElementById("countdownCaption"),
     countdownNumber: document.getElementById("countdownNumber"),
+    pauseSymbol: document.getElementById("pauseSymbol"),
+    resultTitle: document.getElementById("resultTitle"),
     finalScore: document.getElementById("finalScore"),
     finalBestScore: document.getElementById("finalBestScore"),
     finalStage: document.getElementById("finalStage"),
@@ -298,9 +300,12 @@
     bgmWasPlayingBeforePause: false,
     bgmStartedThisRun: false,
     immersion: createImmersionState(),
+    supplyWait: createSupplyWaitState(),
     score: 0,
     bestScore: readBestScore(),
     elapsed: 0,
+    roundElapsed: 0,
+    endReason: null,
     stageElapsed: 0,
     level: 1,
     stage: 1,
@@ -354,6 +359,7 @@
     next: null,
     resolve: null,
     pendingInputs: [],
+    shotEffects: [],
     nextRevision: 0,
     buttonsLocked: false,
     countdownTimer: null,
@@ -579,16 +585,17 @@
 
   function getStackRushFallDuration(stage) {
     var safeStage = Math.max(1, Math.floor(Number(stage) || 1));
-    var fallDuration = STACK_RUSH_STAGE_ONE_FALL_DURATION_SECONDS;
-
-    for (var currentStage = 2; currentStage <= safeStage; currentStage += 1) {
-      fallDuration *=
-        currentStage % 5 === 0
-          ? STACK_RUSH_PRESSURE_FALL_FACTOR
-          : STACK_RUSH_NORMAL_FALL_FACTOR;
-    }
-
-    return Math.max(STACK_RUSH_MIN_FALL_DURATION_SECONDS, fallDuration);
+    // Every fifth stage meets the logarithmic envelope. Between anchors,
+    // acceleration grows toward the pressure stage without a speed drop.
+    var lowerStage = safeStage < 5 ? 1 : Math.floor(safeStage / 5) * 5;
+    var upperStage = safeStage < 5 ? 5 : lowerStage + 5;
+    var progress = (safeStage - lowerStage) / (upperStage - lowerStage);
+    var lowerSpeed = 1 + STACK_RUSH_LOG_SPEED_FACTOR * Math.log(lowerStage);
+    var upperSpeed = 1 + STACK_RUSH_LOG_SPEED_FACTOR * Math.log(upperStage);
+    var rise = Math.expm1(STACK_RUSH_PRESSURE_CURVE_STRENGTH * progress) /
+      Math.expm1(STACK_RUSH_PRESSURE_CURVE_STRENGTH);
+    return STACK_RUSH_STAGE_ONE_FALL_DURATION_SECONDS /
+      (lowerSpeed + (upperSpeed - lowerSpeed) * rise);
   }
 
   function buildStackRushStageProfile(stage) {
@@ -669,39 +676,28 @@
     );
   }
 
+  function validStoredScore(value) {
+    var score = Number(value);
+    return Number.isSafeInteger(score) && score >= 0 && score <= 1000000000 ? score : 0;
+  }
+
   function readBestScore() {
+    try { return validStoredScore(window.localStorage.getItem(BEST_SCORE_STORAGE_KEY)); }
+    catch (error) { return 0; }
+  }
+
+  function readPreviousBestScore() {
     try {
-      var storedScore = window.localStorage.getItem(BEST_SCORE_STORAGE_KEY);
-      if (storedScore !== null) {
-        var parsedScore = Number(storedScore);
-        return Number.isFinite(parsedScore) && parsedScore > 0 ? parsedScore : 0;
-      }
-
-      var legacyScores = window.localStorage.getItem(
-        LEGACY_STACK_RUSH_SCORES_STORAGE_KEY
-      );
-      if (!legacyScores) {
-        return 0;
-      }
-
-      var parsedLegacyScores = JSON.parse(legacyScores);
-      var migratedScore = Number(
-        parsedLegacyScores && parsedLegacyScores[MODE_STACK_RUSH]
-      );
-      if (!Number.isFinite(migratedScore) || migratedScore <= 0) {
-        return 0;
-      }
-
-      window.localStorage.setItem(BEST_SCORE_STORAGE_KEY, String(migratedScore));
-      return migratedScore;
-    } catch (error) {
-      return 0;
-    }
+      var prior = window.localStorage.getItem(PREVIOUS_BEST_SCORE_STORAGE_KEY);
+      if (prior !== null) return validStoredScore(prior);
+      var legacy = JSON.parse(window.localStorage.getItem(LEGACY_STACK_RUSH_SCORES_STORAGE_KEY));
+      return validStoredScore(legacy && legacy[MODE_STACK_RUSH]);
+    } catch (error) { return 0; }
   }
 
   function writeBestScore() {
     try {
-      var storedBest = Number(window.localStorage.getItem(BEST_SCORE_STORAGE_KEY));
+      var storedBest = validStoredScore(window.localStorage.getItem(BEST_SCORE_STORAGE_KEY));
       if (Number.isFinite(storedBest) && storedBest > state.bestScore) state.bestScore = storedBest;
       window.localStorage.setItem(BEST_SCORE_STORAGE_KEY, String(state.bestScore));
     } catch (error) {
@@ -712,11 +708,11 @@
   function readLastRunSummary() {
     try {
       var summary = JSON.parse(window.localStorage.getItem(LAST_RUN_STORAGE_KEY));
-      if (!summary || summary.version !== 1) return null;
+      if (!summary || summary.version !== 2 || summary.ruleset !== RULESET_ID) return null;
       var valid = ["score", "stage", "combo", "bursts"].every(function (key) {
         return Number.isSafeInteger(summary[key]) && summary[key] >= 0 && summary[key] <= 1000000000;
       });
-      return valid ? { version: 1, score: summary.score, stage: summary.stage,
+      return valid ? { version: 2, ruleset: RULESET_ID, score: summary.score, stage: summary.stage,
         combo: summary.combo, bursts: summary.bursts } : null;
     } catch (error) { return null; }
   }
@@ -738,7 +734,7 @@
   }
 
   function saveLastRunSummary() {
-    state.lastRunSummary = { version: 1, score: state.score, stage: state.highestStage,
+    state.lastRunSummary = { version: 2, ruleset: RULESET_ID, score: state.score, stage: state.highestStage,
       combo: state.bestCombo, bursts: state.immersion.completed };
     try { window.localStorage.setItem(LAST_RUN_STORAGE_KEY, JSON.stringify(state.lastRunSummary)); } catch (error) {}
   }
@@ -861,6 +857,7 @@
     updateBestScoreUi();
     updateStageUi();
     updateComboUi();
+    elements.resultTitle.textContent = translate("gameOver");
   }
 
   function setLanguage(language) {
@@ -1331,8 +1328,9 @@
       "aria-valuetext",
       String(state.stageRemoved) + "/" + String(target)
     );
-    elements.stageTimeValue.textContent =
-      String(remainingSeconds) + timeSuffix;
+    elements.stageTimeValue.textContent = (state.language === "ko" ? "남은 " : "") + remainingSeconds + timeSuffix;
+    elements.stageTimeValue.setAttribute("aria-label", translate("stageRemaining") + " " + remainingSeconds + timeSuffix);
+    elements.stageTimeValue.classList.remove("is-final-seconds");
   }
 
   function updateComboUi() {
@@ -2109,6 +2107,7 @@
   }
 
   function clearRenderedStageObjects() {
+    clearShotEffects();
     laneElements.forEach(function (laneElement) {
       Array.prototype.forEach.call(
         laneElement.blocks.children,
@@ -2149,6 +2148,9 @@
   }
 
   function initialiseStageBoard() {
+    state.supplyWait.reason = null;
+    state.supplyWait.seconds = 0;
+    state.supplyWait.showNotice = false;
     state.nextRevision += 1;
     state.waves = [];
     state.futureWaves = [];
@@ -2211,8 +2213,12 @@
 
     state.phase = "countdown";
     state.score = 0;
+    clearShotEffects();
     resetImmersion();
+    state.supplyWait = createSupplyWaitState();
     state.elapsed = 0;
+    state.roundElapsed = 0;
+    state.endReason = null;
     state.stageElapsed = 0;
     state.level = 1;
     state.stage = 1;
@@ -2868,10 +2874,43 @@
     return state.immersion.remaining > 0 && !state.resolve && state.next && !hasCurrentTarget();
   }
 
+  function createSupplyWaitState() {
+    return { reason: null, seconds: 0, lastNoticeAt: -Infinity, showNotice: false,
+      totals: { empty: 0, supply: 0, branch: 0 }, episodes: 0, advances: 0 };
+  }
+
+  function getSupplyWaitReason() {
+    if (state.phase !== "running" || state.resolve || !state.next || hasCurrentTarget()) return null;
+    if (getVisibleBlockCount() === 0) return "empty";
+    var upcoming = state.stageSpawnedWaveCount < state.difficulty.spawnWaveCount && state.futureWaves[0];
+    return upcoming && state.lanes.some(function (lane, index) {
+      return !getBottomBlock(index) && upcoming.values[index] === state.next.current;
+    }) ? "supply" : "branch";
+  }
+
+  function updateSupplyWait(deltaSeconds) {
+    var wait = state.supplyWait;
+    var reason = getSupplyWaitReason();
+    if (wait.reason !== reason) {
+      wait.reason = reason;
+      wait.seconds = 0;
+      wait.showNotice = false;
+      if (reason) wait.episodes += 1;
+    }
+    if (!reason) return;
+    wait.seconds += deltaSeconds;
+    wait.totals[reason] += deltaSeconds;
+    if (!wait.showNotice && wait.seconds >= 0.65 && state.elapsed - wait.lastNoticeAt >= 4) {
+      wait.showNotice = true;
+      wait.lastNoticeAt = state.elapsed;
+    }
+  }
+
   function easeEmptyBoardSupply() {
     if (state.resolve || !state.next || hasCurrentTarget() ||
         state.stageSpawnedWaveCount >= state.difficulty.spawnWaveCount) return;
-    // Advance only a scheduled wave, and only when reflow cannot crowd the line.
+    var reason = getSupplyWaitReason();
+    if (reason !== "empty" && reason !== "supply") return;
     var pitch = getStackRushWavePitchNormalized();
     var safe = state.lanes.every(function (lane, index) {
       var blocks = getActiveBlocks(index);
@@ -2879,7 +2918,13 @@
         return block.normalizedY + pitch < getGameOverY() - pitch * 2;
       });
     });
-    if (safe) state.waveTimer = Math.min(state.waveTimer, 0.45);
+    if (safe) {
+      // Keep a short wall-time handoff even when Burst slows the board clock.
+      var rate = state.immersion.remaining > 0 ? BURST_SLOW_FACTOR : state.immersion.recoveryRemaining > 0 ? 0.65 : 1;
+      var nextTimer = Math.min(state.waveTimer, (reason === "empty" ? 0.12 : 0.2) * rate);
+      if (nextTimer < state.waveTimer) state.supplyWait.advances += 1;
+      state.waveTimer = nextTimer;
+    }
   }
 
   function reconnectBurstTarget() {
@@ -3074,8 +3119,11 @@
     };
     var notice = elements.immersionNotice;
     var text = state.elapsed < flow.noticeUntil ? notices[flow.notice] || "" : "";
-    if (!text && state.phase === "running" && !state.resolve && state.next && !hasCurrentTarget()) {
-      text = immersionText("현재 NEXT와 맞는 맨 아래 블록이 없어요", "No bottom block matches the current NEXT");
+    if (!text && state.phase === "running" && getSupplyWaitReason() && state.supplyWait.showNotice) {
+      text = state.supplyWait.reason === "branch"
+        ? (ready ? immersionText("막혔다면 BURST로 연결하세요", "Blocked? Reconnect with BURST")
+          : immersionText("현재 NEXT와 맞는 맨 아래 블록이 없어요", "No bottom block matches the current NEXT"))
+        : immersionText("다음 블록이 곧 내려와요", "Next blocks arriving");
     }
     if (!text && state.phase === "running") text = getLearningHint();
     if (notice.textContent !== text) notice.textContent = text;
@@ -3460,8 +3508,15 @@
     });
   }
 
-  function updateGame(deltaSeconds) {
+  function advanceRoundClock(deltaSeconds) {
+    state.roundElapsed += Math.max(0, deltaSeconds);
+    return true;
+  }
+
+  function updateGame(deltaSeconds, roundDeltaSeconds) {
+    if (state.phase !== "running" || !advanceRoundClock(roundDeltaSeconds === undefined ? deltaSeconds : roundDeltaSeconds)) return;
     state.elapsed += deltaSeconds;
+    updateShotEffects(deltaSeconds);
     var slowSeconds = isBurstWaitingForTarget() ? deltaSeconds : Math.min(deltaSeconds, state.immersion.remaining);
     var recoverySeconds = slowSeconds === 0 ? Math.min(deltaSeconds, state.immersion.recoveryRemaining) : 0;
     var boardDelta = deltaSeconds - slowSeconds * (1 - BURST_SLOW_FACTOR) - recoverySeconds * 0.35;
@@ -3488,6 +3543,7 @@
     updateStageProgress();
     motionDifficulty = getMotionDifficulty();
 
+    updateSupplyWait(deltaSeconds);
     easeEmptyBoardSupply();
 
     var canSpawnWave =
@@ -3507,7 +3563,8 @@
     }
   }
 
-  function updateStageBreak(deltaSeconds, now) {
+  function updateStageBreak(deltaSeconds, now, roundDeltaSeconds) {
+    if (!advanceRoundClock(roundDeltaSeconds === undefined ? deltaSeconds : roundDeltaSeconds)) return;
     state.elapsed += deltaSeconds;
     finishStageBreak(now);
   }
@@ -3528,6 +3585,56 @@
       resolution.projectileElement.remove();
       resolution.projectileElement = null;
     }
+  }
+
+  function clearShotEffects() {
+    (state.shotEffects || []).forEach(function (effect) {
+      effect.projectile.remove();
+      if (effect.echo) effect.echo.remove();
+    });
+    state.shotEffects = [];
+  }
+
+  function rememberShotEffect(resolution, target) {
+    createProjectile(resolution);
+    var echo = null;
+    if (target && resolution.predictedOutcome === "correct") {
+      echo = document.createElement("div");
+      echo.className = "lane-block is-removing shot-echo";
+      echo.textContent = String(target.value);
+      echo.dataset.value = String(target.value);
+      echo.setAttribute("aria-hidden", "true");
+      echo.style.setProperty("--block-y", String(target.normalizedY));
+      laneElements[resolution.laneIndex].track.appendChild(echo);
+    }
+    state.shotEffects.push({ projectile: resolution.projectileElement, echo: echo,
+      targetY: target ? target.normalizedY : 0, age: 0 });
+    resolution.projectileElement = null;
+    while (state.shotEffects.length > MAX_SHOT_EFFECTS) {
+      var expired = state.shotEffects.shift();
+      expired.projectile.remove();
+      if (expired.echo) expired.echo.remove();
+    }
+    updateShotEffects(0);
+  }
+
+  function updateShotEffects(deltaSeconds) {
+    state.shotEffects = state.shotEffects.filter(function (effect) {
+      effect.age += deltaSeconds;
+      var flight = STACK_RUSH_PROJECTILE_DURATION_MS / 1000;
+      var progress = clamp(effect.age / flight, 0, 1);
+      effect.projectile.style.top = String((1 - progress * (1 - effect.targetY)) * 100) + "%";
+      effect.projectile.style.opacity = progress < 1 ? "1" : "0";
+      if (effect.echo) {
+        var fade = clamp((effect.age - flight) / 0.1, 0, 1);
+        effect.echo.style.opacity = String(1 - fade);
+        effect.echo.style.setProperty("--block-scale", String(1 - fade * 0.5));
+      }
+      if (effect.age < flight + 0.1) return true;
+      effect.projectile.remove();
+      if (effect.echo) effect.echo.remove();
+      return false;
+    });
   }
 
   function startStackRushShot(laneIndex) {
@@ -3574,22 +3681,16 @@
       clearedAccounted: false,
       projectileElement: null
     };
-    createProjectile(state.resolve);
+    // Commit the displayed shot now. Visual travel/removal does not gate input.
+    var resolution = state.resolve;
+    rememberShotEffect(resolution, target);
+    resolveStackRushImpact(resolution);
+    if (state.resolve === resolution && resolution.outcome === "correct") finishResolution();
   }
 
   function processNextPendingInput() {
-    if (
-      state.phase !== "running" ||
-      state.resolve ||
-      state.pendingInputs.length === 0
-    ) {
-      return;
-    }
-
-    var input = state.pendingInputs.shift();
-    if (input && input.revision === state.nextRevision && state.next &&
-        input.value === state.next.current) startStackRushShot(input.laneIndex);
-    renderButtonState();
+    // Kept as a lifecycle cleanup point for old Lab scenarios. No deferred shots.
+    state.pendingInputs = [];
   }
 
   function showRushButtonPress(laneIndex) {
@@ -3603,22 +3704,14 @@
   }
 
   function handleLaneClick(laneIndex) {
-    if (state.phase !== "running" || !state.next ||
-        !Number.isInteger(laneIndex) || laneIndex < 0 || laneIndex >= LANE_COUNT ||
-        state.pendingInputs.length >= MAX_PENDING_INPUTS) return;
-
+    if (state.phase !== "running" || !state.next || state.resolve ||
+        !Number.isInteger(laneIndex) || laneIndex < 0 || laneIndex >= LANE_COUNT) return;
     primeEffectsAudio();
     showRushButtonPress(laneIndex);
-    if (state.resolve) {
-      // Bind one buffered tap to the NEXT already on screen. A rapid tap burst
-      // must never become a queue of shots against numbers not yet displayed.
-      state.pendingInputs.push({ laneIndex: laneIndex,
-        revision: state.nextRevision, value: state.next.current });
-      renderButtonState();
-      return;
-    }
     startStackRushShot(laneIndex);
-    renderButtonState();
+    // The next event always sees the NEXT committed by this event, even when
+    // several clicks arrive before the next animation frame.
+    render(performance.now());
   }
 
   function endRun(reason) {
@@ -3643,6 +3736,7 @@
     saveLastRunSummary();
     state.phase = "game-over";
     state.immersion.remaining = 0;
+    clearShotEffects();
     clearImmersionEffects();
     clearStageBanner();
     clearHudFeedback();
@@ -3661,9 +3755,9 @@
     updateBestScoreUi();
     updateOrientationState();
 
-    if (reason === "red-line") {
-      elements.gameOverScreen.setAttribute("data-reason", "red-line");
-    }
+    state.endReason = reason;
+    elements.gameOverScreen.setAttribute("data-reason", reason);
+    elements.resultTitle.textContent = translate("gameOver");
   }
 
   function clearCountdownTimers() {
@@ -3680,6 +3774,7 @@
   function setCountdownVisual(number, caption) {
     elements.countdownLayer.classList.remove("is-preparing");
     elements.countdownCaption.textContent = caption;
+    elements.pauseSymbol.hidden = true;
     elements.countdownNumber.hidden = false;
     elements.countdownNumber.textContent = number;
     elements.countdownNumber.classList.remove("countdown-pop");
@@ -3690,6 +3785,7 @@
   function setPreparationVisual() {
     elements.resumeButton.hidden = true;
     elements.countdownLayer.hidden = false;
+    elements.pauseSymbol.hidden = true;
     elements.countdownLayer.classList.add("is-preparing");
     elements.countdownCaption.textContent = translate("preparing");
     elements.countdownNumber.hidden = true;
@@ -3797,7 +3893,9 @@
     pauseBgmForExternal();
     stopEffectsAudio();
     elements.countdownLayer.hidden = false;
-    setCountdownVisual("Ⅱ", translate("paused"));
+    setCountdownVisual("", translate("paused"));
+    elements.countdownNumber.hidden = true;
+    elements.pauseSymbol.hidden = false;
     elements.resumeButton.hidden = false;
     renderButtonState();
     renderPauseUi();
@@ -3883,6 +3981,9 @@
     var goal = elements.personalGoal;
     goal.textContent = state.bestScore > 0 ? immersionText("다음 목표 · ", "Next goal · ") + (state.bestScore + 1) + immersionText("점", " points") :
       immersionText("첫 목표 · 버스트 한 번 완성하기", "First goal · Complete one Burst");
+    var previous = readPreviousBestScore();
+    elements.previousRecordNote.hidden = previous <= 0;
+    elements.previousRecordNote.textContent = previous > 0 ? immersionText("이전 규칙 최고점 · ", "Previous rules best · ") + previous : "";
     var last = elements.lastRunNote;
     last.textContent = state.lastRunSummary ? immersionText("지난 판 · 최고 콤보 ", "Last run · Best combo ") + state.lastRunSummary.combo +
       immersionText(" / 버스트 ", " / Bursts ") + state.lastRunSummary.bursts : "";
@@ -4149,7 +4250,7 @@
   }
 
   function renderButtonState() {
-    var locked = state.phase !== "running" || state.pendingInputs.length > 0;
+    var locked = state.phase !== "running";
     var blockHeight =
       state.phase === "running" ? getBlockHeightNormalized() : 0;
     laneElements.forEach(function (laneElement, laneIndex) {
@@ -4157,9 +4258,7 @@
         state.phase === "running" &&
         isLaneNearRedLine(laneIndex, blockHeight);
       laneElement.button.disabled = locked;
-      laneElement.button.classList.toggle("is-queued", state.pendingInputs.some(function (input) {
-        return input.laneIndex === laneIndex;
-      }));
+
       laneElement.button.classList.toggle("is-locked", locked);
       laneElement.button.classList.toggle(
         "is-target-candidate",
@@ -4763,7 +4862,11 @@
     state.phase = "running";
     state.score = 0;
     resetImmersion();
+    clearShotEffects();
+    state.supplyWait = createSupplyWaitState();
     state.elapsed = 0;
+    state.roundElapsed = 0;
+    state.endReason = null;
     state.stageElapsed = 0;
     state.level = 1;
     state.stage = selectedStage;
@@ -5450,6 +5553,8 @@
         score: state.score,
         bestScore: state.bestScore,
         elapsed: state.elapsed,
+        roundElapsed: state.roundElapsed,
+        roundDuration: null,
         level: state.level,
         stage: state.stage,
         stageRemoved: state.stageRemoved,
@@ -5473,6 +5578,7 @@
         nextInsight: Object.assign({}, state.nextInsight),
         futureWaveCount: state.futureWaves.length,
         visibleBlockCount: getVisibleBlockCount(),
+        supplyWait: { reason: state.supplyWait.reason, seconds: state.supplyWait.seconds, totals: Object.assign({}, state.supplyWait.totals), episodes: state.supplyWait.episodes, advances: state.supplyWait.advances },
         buttonsLocked: state.buttonsLocked,
         pendingInputCount: state.pendingInputs.length,
         language: state.language,
@@ -5512,13 +5618,14 @@
       state.lastFrameTime = now;
     }
 
-    var deltaSeconds = Math.min(0.1, Math.max(0, (now - state.lastFrameTime) / 1000));
+    var roundDeltaSeconds = Math.max(0, (now - state.lastFrameTime) / 1000);
+    var deltaSeconds = Math.min(0.1, roundDeltaSeconds);
     state.lastFrameTime = now;
 
     if (state.phase === "running") {
-      updateGame(deltaSeconds);
+      updateGame(deltaSeconds, roundDeltaSeconds);
     } else if (state.phase === PHASE_STAGE_BREAK) {
-      updateStageBreak(deltaSeconds, now);
+      updateStageBreak(deltaSeconds, now, roundDeltaSeconds);
     }
     render(now);
     window.requestAnimationFrame(frame);

@@ -2156,5 +2156,16 @@ button:focus-visible {
 .setting-volume-row { grid-template-columns:minmax(0, 1fr); gap:4px; }
 .setting-volume-row .volume-control { min-width:0; }
 
-/* One buffered tap belongs to the visible NEXT. */
-.lane-button.is-queued { box-shadow: inset 0 0 0 2px var(--ink); opacity: .75; }
+/* Cosmetic remnants never intercept the next shot. */
+.shot-echo { pointer-events:none; z-index:4; }
+
+/* Pause is geometry, independent of glyph bearings and countdown tracking. */
+.pause-symbol { display:inline-flex; align-items:center; justify-content:center; gap:4px; width:16px; height:18px; flex:none; }
+.pause-symbol::before, .pause-symbol::after { content:""; width:5px; height:100%; background:currentColor; border-radius:1px; }
+.pause-symbol-large { width:72px; height:88px; gap:16px; color:var(--ink); }
+.pause-symbol-large::before, .pause-symbol-large::after { width:24px; border-radius:2px; }
+.pause-symbol[hidden], .countdown-number[hidden] { display:none; }
+
+.stage-time.is-final-seconds { color:#b44445; font-weight:800; }
+
+[data-i18n="helpBody"] { white-space: pre-line; }

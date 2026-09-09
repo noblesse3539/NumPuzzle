@@ -1,0 +1,264 @@
+[
+  {
+    "name": "Log anchors and increasing pressure steps match the approved curve through stage 150",
+    "pass": true,
+    "evidence": {
+      "stage1": 30,
+      "stage4Bpm": 94.80691270184062,
+      "stage5Bpm": 119.33550908464467,
+      "stage69Bpm": 199.43775801784258,
+      "stage70Bpm": 200.3920413127485
+    }
+  },
+  {
+    "name": "Crossing 90 seconds does not end a run, but the red line does",
+    "pass": true,
+    "evidence": {
+      "running": "running",
+      "elapsed": 90.2,
+      "ended": "game-over",
+      "reason": "red-line",
+      "title": "게임 오버",
+      "limit": null
+    }
+  },
+  {
+    "name": "Stage transition crosses 90 seconds and pause stops the elapsed clock",
+    "pass": true
+  },
+  {
+    "name": "Eight actual button clicks update eight NEXTs without waiting for animation",
+    "pass": true,
+    "evidence": {
+      "ms": 32.399999998509884,
+      "cleared": 8,
+      "combo": 8,
+      "effects": 8,
+      "queued": 0
+    }
+  },
+  {
+    "name": "Wrong then correct input uses the penalty immediately, without duplicate rewards",
+    "pass": true,
+    "evidence": {
+      "miss": {
+        "score": 0,
+        "combo": 0,
+        "count": 2
+      },
+      "hit": {
+        "score": 10,
+        "combo": 1,
+        "count": 1
+      },
+      "after": 10
+    }
+  },
+  {
+    "name": "Cosmetic shots are bounded, freeze on pause, and clear on stage transition",
+    "pass": true
+  },
+  {
+    "name": "A rapid stage-ending click cannot fire again into the next stage",
+    "pass": true
+  },
+  {
+    "name": "Empty-board supply shortens real waiting while danger and budgets remain protected",
+    "pass": true,
+    "evidence": {
+      "burst": 0.048,
+      "blocked": 2,
+      "exhausted": 2
+    }
+  },
+  {
+    "name": "Brief empty gaps have no wait notice; sustained branch gaps are classified locally",
+    "pass": true,
+    "evidence": {
+      "brief": false,
+      "reason": "branch",
+      "totals": {
+        "empty": 0.3,
+        "supply": 0,
+        "branch": 0.7
+      },
+      "text": "현재 NEXT와 맞는 맨 아래 블록이 없어요"
+    }
+  },
+  {
+    "name": "Old scores stay archived while new version and new summaries remain separate",
+    "pass": true,
+    "evidence": {
+      "before": {
+        "prior": 31881,
+        "best": 0,
+        "summary": null
+      },
+      "after": 10,
+      "old": "31881",
+      "oldSummary": "{\"version\":1,\"score\":31881}",
+      "newSummary": {
+        "version": 2,
+        "ruleset": "pressure-log-v1",
+        "score": 10,
+        "stage": 1,
+        "combo": 1,
+        "bursts": 0
+      }
+    }
+  },
+  {
+    "name": "Pause bars and resume control share the center at mobile and desktop sizes",
+    "pass": true,
+    "evidence": [
+      {
+        "width": 320,
+        "height": 568,
+        "centers": [
+          {
+            "id": "countdownLayer",
+            "x": 160,
+            "w": 320,
+            "h": 568,
+            "display": "grid"
+          },
+          {
+            "id": "countdownCaption",
+            "x": 160,
+            "w": 41.78125,
+            "h": 13,
+            "display": "block"
+          },
+          {
+            "id": "pauseSymbol",
+            "x": 160,
+            "w": 72,
+            "h": 88,
+            "display": "flex"
+          },
+          {
+            "id": "resumeButton",
+            "x": 160,
+            "w": 240,
+            "h": 44,
+            "display": "block"
+          }
+        ],
+        "left": "24px",
+        "right": "24px",
+        "numberHidden": true
+      },
+      {
+        "width": 390,
+        "height": 844,
+        "centers": [
+          {
+            "id": "countdownLayer",
+            "x": 195,
+            "w": 390,
+            "h": 844,
+            "display": "grid"
+          },
+          {
+            "id": "countdownCaption",
+            "x": 195,
+            "w": 41.78125,
+            "h": 13,
+            "display": "block"
+          },
+          {
+            "id": "pauseSymbol",
+            "x": 195,
+            "w": 72,
+            "h": 88,
+            "display": "flex"
+          },
+          {
+            "id": "resumeButton",
+            "x": 195,
+            "w": 240,
+            "h": 44,
+            "display": "block"
+          }
+        ],
+        "left": "24px",
+        "right": "24px",
+        "numberHidden": true
+      },
+      {
+        "width": 547,
+        "height": 880,
+        "centers": [
+          {
+            "id": "countdownLayer",
+            "x": 273.5,
+            "w": 547,
+            "h": 880,
+            "display": "grid"
+          },
+          {
+            "id": "countdownCaption",
+            "x": 273.4921875,
+            "w": 43.953125,
+            "h": 13,
+            "display": "block"
+          },
+          {
+            "id": "pauseSymbol",
+            "x": 273.5,
+            "w": 72,
+            "h": 88,
+            "display": "flex"
+          },
+          {
+            "id": "resumeButton",
+            "x": 273.5,
+            "w": 240,
+            "h": 44,
+            "display": "block"
+          }
+        ],
+        "left": "24px",
+        "right": "24px",
+        "numberHidden": true
+      },
+      {
+        "width": 1280,
+        "height": 900,
+        "centers": [
+          {
+            "id": "countdownLayer",
+            "x": 640,
+            "w": 560,
+            "h": 900,
+            "display": "grid"
+          },
+          {
+            "id": "countdownCaption",
+            "x": 639.9921875,
+            "w": 51.421875,
+            "h": 15,
+            "display": "block"
+          },
+          {
+            "id": "pauseSymbol",
+            "x": 640,
+            "w": 72,
+            "h": 88,
+            "display": "flex"
+          },
+          {
+            "id": "resumeButton",
+            "x": 640,
+            "w": 240,
+            "h": 44,
+            "display": "block"
+          }
+        ],
+        "left": "24px",
+        "right": "24px",
+        "numberHidden": true
+      }
+    ]
+  }
+]

@@ -60,9 +60,10 @@
                 </span>
                 <span class="rush-intro-copy">
                   <strong class="rush-intro-title" id="rushTitle" data-i18n="stackRushModeName">스택 러시</strong>
-                  <span class="rush-intro-tagline" data-i18n="stackRushModeTagline">끝없이 내려오는 블록들을 제거하세요</span>
+                  <span class="rush-intro-tagline" data-i18n="stackRushModeTagline">빨간 선에 닿기 전에, 맞히고 살아남으세요</span>
                   <span id="personalGoal" class="personal-goal"></span>
                   <span id="lastRunNote" class="last-run-note"></span>
+                  <span id="previousRecordNote" class="last-run-note" hidden></span>
                   <span class="rush-intro-best"><span data-i18n="best">최고 점수</span> <strong id="stackRushBestScore">0</strong></span>
                 </span>
                 <span class="rush-intro-mark" aria-hidden="true">↗</span>
@@ -78,8 +79,8 @@
             </p>
             <nav class="site-links" data-i18n-aria="siteLinksAria" aria-label="사이트 정보">
               <a href="./privacy.html" data-i18n="privacyLink">개인정보처리방침</a>
-              <a href="https://github.com/noblesse3539/NumPuzzle" target="_blank" rel="noopener noreferrer" data-i18n="contactLink">
-                문의·크레딧
+              <a href="mailto:noblesse3539@daum.net" data-i18n="contactLink">
+                문의
               </a>
             </nav>
           </div>
@@ -103,7 +104,7 @@
             </div>
 
             <div class="game-controls">
-            <button class="icon-button pause-button" id="pauseButton" type="button" data-i18n-aria="pauseAria" aria-label="일시정지" aria-keyshortcuts="P Escape"><span aria-hidden="true">Ⅱ</span></button>
+            <button class="icon-button pause-button" id="pauseButton" type="button" data-i18n-aria="pauseAria" aria-label="일시정지" aria-keyshortcuts="P Escape"><span class="pause-symbol" aria-hidden="true"></span></button>
             <button class="icon-button music-toggle" id="musicButton" type="button" data-i18n-aria="musicButtonAria">
               <span class="music-icon" aria-hidden="true">♪</span>
             </button>
@@ -116,7 +117,7 @@
                 <span class="hud-label" data-i18n="stage">STAGE</span>
                 <strong class="stage-value" id="stageValue">1</strong>
                 <span class="stage-progress-text" id="stageProgressText">0/8</span>
-                <span class="stage-time" id="stageTimeValue">30초</span>
+                <span class="stage-time" id="stageTimeValue">남은 1:30</span>
               </div>
               <div
                 class="stage-progress"
@@ -198,6 +199,7 @@
           <div class="countdown-layer" id="countdownLayer" hidden aria-live="assertive">
             <span class="countdown-caption" id="countdownCaption">GET READY</span>
             <strong class="countdown-number" id="countdownNumber">3</strong>
+            <span class="pause-symbol pause-symbol-large" id="pauseSymbol" aria-hidden="true" hidden></span>
             <button class="primary-button resume-button" id="resumeButton" type="button" data-i18n="resume" hidden>계속하기</button>
           </div>
         </section>
@@ -222,7 +224,7 @@
           </div>
 
           <div class="game-over-card">
-            <h2 data-i18n="gameOver">GAME OVER</h2>
+            <h2 id="resultTitle" data-i18n="gameOver">GAME OVER</h2>
 
             <dl class="result-grid">
               <div>
@@ -254,8 +256,8 @@
 
             <nav class="site-links" data-i18n-aria="siteLinksAria" aria-label="사이트 정보">
               <a href="./privacy.html" data-i18n="privacyLink">개인정보처리방침</a>
-              <a href="https://github.com/noblesse3539/NumPuzzle" target="_blank" rel="noopener noreferrer" data-i18n="contactLink">
-                문의·크레딧
+              <a href="mailto:noblesse3539@daum.net" data-i18n="contactLink">
+                문의
               </a>
             </nav>
           </div>
@@ -276,7 +278,8 @@
             </button>
             <p class="game-kicker" id="helpTitle" data-i18n="helpTitle">HOW TO PLAY</p>
             <div class="help-copy">
-              <p data-i18n="helpBody">빨간 선에 닿기 전에 내려오는 숫자 블록을 제거하세요.</p>
+              <p data-i18n="helpBody">빨간 선에 닿기 전에 내려오는 숫자 블록을 하단의 버튼을 눌러 제거하세요.
+키보드 1~4 또는 A/S/D/F로도 버튼을 누를 수 있습니다. B는 버스트, P 또는 Esc는 일시정지입니다.</p>
             </div>
             <button class="text-button reset-tips-button" id="resetTipsButton" type="button" data-i18n="resetTips">첫 플레이 안내 다시 보기</button>
             <button class="secondary-button" id="helpDoneButton" type="button" data-i18n="confirm">확인</button>

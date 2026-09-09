@@ -1,0 +1,62 @@
+[
+  {
+    "name": "NEXT remains visible after every matching choice",
+    "pass": true
+  },
+  {
+    "name": "Safe supply advances scheduled timer but never danger or budget",
+    "pass": true
+  },
+  {
+    "name": "Burst recovery slows board and retains original score",
+    "pass": true
+  },
+  {
+    "name": "Blocked Burst reports absence without promising supply and board keeps moving",
+    "pass": true
+  },
+  {
+    "name": "Lightning has bounded effects and resets on miss",
+    "pass": true
+  },
+  {
+    "name": "Important notifications queue and stale ready events expire",
+    "pass": true
+  },
+  {
+    "name": "Manual pause preserves Burst and discards queued taps",
+    "pass": true
+  },
+  {
+    "name": "Stage-break pause resumes both break and BGM",
+    "pass": true
+  },
+  {
+    "name": "Keyboard lane and burst bindings use gameplay entry points",
+    "pass": true
+  },
+  {
+    "name": "Effect settings persist and voices stop on pause",
+    "pass": true
+  },
+  {
+    "name": "Learning steps advance, then reset from help",
+    "pass": true
+  },
+  {
+    "name": "Record checkpoint, last-run summary and external newer record survive",
+    "pass": true
+  },
+  {
+    "name": "Mobile and English controls, dialogs and hit regions fit",
+    "pass": true
+  },
+  {
+    "name": "Settings localization, tips reset and modal scrolling work",
+    "pass": true
+  },
+  {
+    "name": "Blocked local storage does not prevent real countdown and gameplay",
+    "pass": true
+  }
+]
