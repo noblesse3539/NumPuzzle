@@ -1,0 +1,105 @@
+[
+  {
+    "name": "Seeded late-stage previews always retain a playable branch",
+    "pass": true,
+    "evidence": {
+      "checks": 12800,
+      "failures": []
+    }
+  },
+  {
+    "name": "Early-stage and Burst previews survive every available correct choice",
+    "pass": true,
+    "evidence": {
+      "checks": 1536,
+      "failures": []
+    }
+  },
+  {
+    "name": "Stage profiles and normalized rows are identical across viewport changes",
+    "pass": true,
+    "evidence": [
+      {
+        "width": 320,
+        "height": 568,
+        "heightRatio": 0.09996299212598425,
+        "stage20": 48
+      },
+      {
+        "width": 390,
+        "height": 844,
+        "heightRatio": 0.09997238331952499,
+        "stage20": 48
+      },
+      {
+        "width": 430,
+        "height": 932,
+        "heightRatio": 0.09998241758241758,
+        "stage20": 48
+      },
+      {
+        "width": 1280,
+        "height": 900,
+        "heightRatio": 0.09997533737773927,
+        "stage20": 48
+      },
+      {
+        "width": 390,
+        "height": 844,
+        "heightRatio": 0.09997238331952499,
+        "stage20": 48
+      }
+    ]
+  },
+  {
+    "name": "Repeated inputs consume the newly displayed NEXT without a queue",
+    "pass": true,
+    "evidence": {
+      "cleared": 5,
+      "combo": 5,
+      "pending": 0,
+      "resolving": false
+    }
+  },
+  {
+    "name": "Pause prevents new shots and leaves no buffered replay",
+    "pass": true
+  },
+  {
+    "name": "Burst reconnects a blocked board without granting free points",
+    "pass": true,
+    "evidence": {
+      "start": {
+        "active": true,
+        "current": 3,
+        "rescues": 1,
+        "score": 0,
+        "count": 8,
+        "repeat": false,
+        "notice": "버스트 · 막힌 NEXT 연결!"
+      },
+      "finish": {
+        "score": 143,
+        "completed": 1
+      }
+    }
+  },
+  {
+    "name": "Burst preserves a legal visible NEXT and blocked uncharged input cannot reconnect",
+    "pass": true
+  },
+  {
+    "name": "Repeated lightning notices respect cooldown and do not queue behind records",
+    "pass": true,
+    "evidence": {
+      "suppressed": true,
+      "queued": 0,
+      "shownAt": 9,
+      "elapsed": 9
+    }
+  },
+  {
+    "name": "Queued rescue feedback expires after the Burst ends",
+    "pass": true
+  }
+]

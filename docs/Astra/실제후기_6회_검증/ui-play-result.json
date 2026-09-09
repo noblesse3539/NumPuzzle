@@ -1,0 +1,12 @@
+{
+  "method": "CUA visible DOM numbers and real button clicks; no state injection",
+  "clicks": 148,
+  "score": 2649,
+  "stage": 8,
+  "bestCombo": 148,
+  "observationAfterStartMs": 45066,
+  "remainingSecondsAtObservation": 48,
+  "resultObservedAfterStartMs": 57774,
+  "result": "game-over",
+  "limitation": "Input stopped between tool calls after the 45-second observation. This is not a human survival-duration measurement."
+}

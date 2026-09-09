@@ -93,21 +93,20 @@ const results = [];
       }
       return samples;
     });
-    await test('Rapid input buffers only one shot for the displayed NEXT', async () => {
+    await test('Repeated inputs consume the newly displayed NEXT without a queue', async () => {
       const result = await page.evaluate(() => {
-        __five.board([[1,1,1,1],[],[],[]], 1, 1);
+        __five.board([[1,1,1,1,1,1],[],[],[]], 1, 1);
         for (let i = 0; i < 5; i++) FOURCAST.pressLane(0);
-        const queued = __five.state.pendingInputs.length; const bound = __five.state.pendingInputs[0].value;
-        __five.step(1); return { queued, bound, cleared: __five.state.stageRemoved, combo: __five.state.combo, remaining: __five.state.pendingInputs.length };
+        return { cleared: __five.state.stageRemoved, combo: __five.state.combo, pending: __five.state.pendingInputs.length, resolving: Boolean(__five.state.resolve) };
       });
-      assert.deepEqual(result, { queued: 1, bound: 1, cleared: 2, combo: 2, remaining: 0 }); return result;
+      assert.deepEqual(result, { cleared: 5, combo: 5, pending: 0, resolving: false }); return result;
     });
-    await test('A buffered tap expires when its NEXT revision changes', async () => {
-      const cleared = await page.evaluate(() => {
-        __five.board([[1,1,1],[],[],[]], 1, 1); FOURCAST.pressLane(0); FOURCAST.pressLane(0);
-        __five.state.nextRevision++; __five.step(1); return __five.state.stageRemoved;
+    await test('Pause prevents new shots and leaves no buffered replay', async () => {
+      const result = await page.evaluate(() => {
+        __five.board([[1,1,1],[],[],[]], 1, 1); FOURCAST.pressLane(0); FOURCAST.pause(); FOURCAST.pressLane(0);
+        return { cleared: __five.state.stageRemoved, pending: __five.state.pendingInputs.length };
       });
-      assert.equal(cleared, 1);
+      assert.deepEqual(result, { cleared: 1, pending: 0 });
     });
     await test('Burst reconnects a blocked board without granting free points', async () => {
       const start = await page.evaluate(() => {
