@@ -1,1 +1,1 @@
-# Add the exact seller line supplied by Google AdSense after the site is approved.
+google.com, pub-1220040323954848, DIRECT, f08c47fec0942fa0
